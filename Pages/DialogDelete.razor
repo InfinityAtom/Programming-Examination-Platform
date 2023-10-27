@@ -1,0 +1,48 @@
+﻿@using Programming_Examination_Platform.Services
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@using MudBlazor.Extensions
+@using System.ComponentModel
+@inject NavigationManager NavManager;
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ProctorService ProctorService
+@inject ISnackbar Snackbar;
+
+<MudDialog>
+    <DialogContent>
+        Are you sure do you want to delete this plannification?
+        The Booked exams with this ID will be deleted, and the students will be required to re-book their exam!
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">No</MudButton>
+        <MudButton Color="Color.Error" OnClick="DeleteConfirmed" StartIcon="@Icons.Material.Filled.DeleteForever">Yes</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public int ExamScheduleId { get; set; }
+    [Inject] private IDialogService DialogService { get; set; }
+
+
+    private async Task DeleteConfirmed()
+    {
+        bool success = await ProctorService.DeleteExamScheduleById(ExamScheduleId);
+        if (success)
+        {
+            Snackbar.Add("Exam schedule and associated bookings deleted successfully!", Severity.Success);
+            NavManager.NavigateTo("/ViewPlannedExams", forceLoad:true);  // Use DialogService to close the dialog
+        }
+        else
+        {
+            Snackbar.Add("Failed to delete the exam schedule!", Severity.Error);
+            NavManager.NavigateTo("/ViewPlannedExams", forceLoad: true); // Use DialogService to close the dialog
+        }
+    }
+
+
+
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Cancel();
+}

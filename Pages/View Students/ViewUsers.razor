@@ -1,0 +1,115 @@
+﻿@page "/view-users"
+@layout MainLayoutAdmin
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@inject NavigationManager NavManager;
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ProctorService ProctorService
+<PageTitle>Dashboard Admin</PageTitle>
+    <MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+        <MudText Typo="Typo.h5">
+            <strong>PeP Management</strong>
+        </MudText>
+        <MudSpacer/>
+        <MudIconButton Icon="@Icons.Material.Filled.Shield" Color="Color.Inherit"/>
+        <MudText Typo="Typo.h6">@_userEmail</MudText>
+        <MudMenu Icon="@Icons.Material.Filled.Menu">
+            <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+        </MudMenu>
+    </MudAppBar>
+    <br/><br/>
+
+<MudText Typo="Typo.h2" Align="Align.Center">Students subscribed to you</MudText>
+<br/>
+<br/>
+<MudText Typo="Typo.h4" Align="Align.Center">Logged in as: @_userEmail</MudText>
+<br/>
+<br/>
+<style>
+.center
+{
+      margin: auto;
+      width: 80%;
+      padding: 20px;
+}     
+</style>
+<div class="center">
+    <div class="center">
+        <MudStack Spacing="15" Row="false">
+    
+            @foreach (var student in students)
+            {
+                <MudCard Elevation="5">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h5">
+                                <strong>@student.FirstName @student.LastName</strong>
+                            </MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.SupervisedUserCircle" Size="Size.Large"/>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudField Label="Email" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@student.Email</MudField>
+                        <MudField Label="Faculty" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.School">@student.Faculty</MudField>
+                        <MudField Label="Group" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleAlt">@student.Groupa</MudField>
+                    </MudCardContent>
+                </MudCard>
+            }
+    
+        </MudStack>
+    </div>
+</div>
+
+<br/>
+<br/>
+<br/>
+<br/>
+@code {
+    private int _userID;
+    private string _userEmail;
+        private const string _localStorageUserId = "proctorID";
+        private const string _navigationToLogin = "/";
+        private const string _emailError = "Email not found";
+        private const string _cssClassForDialogContext = "my-custom-class";
+        private const string _dialogTitle = "⚠️ Warning";
+    private string _userRole;
+    private string specializationName;
+    private int count = 1;
+    private List<Studenti> students = new List<Studenti>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Student")
+        {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+
+        _userID = await LocalStorage.GetItemAsync<int>(_localStorageUserId);
+        students = await ProctorService.GetStudentsByProctorId(_userID);
+        
+
+        if (_userID == -1) // or another value that represents "no ID"
+        {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+
+        var proctor = await ProctorService.GetProctorById(_userID);
+        _userEmail = proctor?.Email ?? _emailError;
+    }
+
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync(_localStorageUserId, -1);
+        NavManager.NavigateTo(_navigationToLogin);
+    }
+
+}

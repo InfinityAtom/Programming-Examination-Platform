@@ -1,0 +1,147 @@
+﻿@page "/booking/confirm"
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject StudentService StudentService
+@inject NavigationManager NavManager;
+@inject ISnackbar Snackbar;
+
+<PageTitle>Confirmarea Datelor</PageTitle>
+<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+    <MudText Typo="Typo.h5"><strong>Programming Examination Platform</strong></MudText>
+    <MudSpacer/>
+    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
+    <MudText Typo="Typo.h6">@userEmail</MudText>
+    <MudMenu Icon="@Icons.Material.Filled.Menu">
+        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+    </MudMenu>
+</MudAppBar>
+<br/><br/>
+<MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+    <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Success">Select the exam</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Success">Select the exam date</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Info">Confirm</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+</MudTimeline>
+<br/><br/>
+<style>
+.center
+{
+      margin: auto;
+      width: 80%;
+      padding: 20px;
+}     
+</style>
+<div class="center">
+    <div class="center">
+        <MudText Typo="Typo.h2" Align="Align.Center">Check the information below</MudText>
+        <br/><br/>
+        <MudCard>
+            <MudCardMedia Image="images/checkBanner.png" Height="200"/>
+            <MudCardContent>
+                <MudText Typo="Typo.h5">Is the information below correct?</MudText>
+                <MudText Typo="Typo.caption">Click on Confirm to agree that the data is correct! </MudText>
+                <br/><br/>
+                <MudField Label="Student's email:"  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@userEmail </MudField>
+                <MudField Label="Exam:"  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Checklist">@examName</MudField>
+                <MudField Label="Exam date:"  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.DateRange"> @selectedDate.ToString("dd/MM/yyyy")</MudField>
+                <MudField Label="Available places:" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra">@noOfPlaces</MudField>
+                <MudField Label="Exam Room:" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork">@roomName</MudField>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" OnClick="ConfirmingBooking" Color="Color.Success">Confirm</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </div>
+</div>
+
+@code {
+    private int userID;
+    private string userEmail;
+    private DateTime selectedDate; 
+    private int selectedExam;
+    private string examName;
+    public Studenti student;
+    private string _userRole;
+    private int proctorID;
+    private int? noOfPlaces;
+    private int examScheduleID;
+    private string? roomName;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        userID = await LocalStorage.GetItemAsync<int>("userID");
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+    
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
+        {
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        if (userID == -1) // or another value that represents "no ID"
+        {  
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        student = await StudentService.GetStudentById(userID);
+        userEmail = student?.Email ?? "Email not found";
+        selectedExam = await LocalStorage.GetItemAsync<int>("selectedExam");
+        selectedDate = await LocalStorage.GetItemAsync<DateTime>("dateSelected");
+    
+    // Fetch examScheduleID from LocalStorage
+        examScheduleID = await LocalStorage.GetItemAsync<int>("ExamScheduleId");
+
+    // Now, fetch the number of available places using the retrieved examScheduleID
+        noOfPlaces = await StudentService.GetAvailablePlacesByExamScheduleId(examScheduleID);
+        roomName = await StudentService.GetRoomNameByExamScheduleId(examScheduleID);
+        examName = selectedExam == 1 ? "Java Exam" : "Unknown Exam"; // Adjust as necessary
+    }
+
+    private async Task ConfirmingBooking()
+    {
+        var bookings = new Model.Booking()
+        {
+            StudentId = userID,
+            ExamScheduleId = examScheduleID,
+            ExamId = selectedExam,
+            BookingDate = selectedDate
+        };
+    
+        await StudentService.SaveBooking(bookings);
+
+    // Fetch the relevant ExamSchedule
+        var examSchedule = await StudentService.GetExamScheduleById(examScheduleID);
+        if(examSchedule != null)
+        {
+    // Decrease the AvailablePlaces by 1
+            examSchedule.AvailablePlaces -= 1;
+
+    // Save the updated ExamSchedule
+            await StudentService.UpdateExamSchedule(examSchedule);
+        }
+
+        Snackbar.Add("Booking Confirmed!", Severity.Success);
+        StudentService.SendConfirmationEmail(student, "Java Exam", selectedDate);
+        NavManager.NavigateTo("/indexStudent");
+    }
+
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync("userID", -1);
+        NavManager.NavigateTo("/loginStudent");
+    }
+}

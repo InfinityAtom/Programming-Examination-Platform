@@ -1,0 +1,187 @@
+﻿@page "/register"
+@layout LoginLayout
+@using Programming_Examination_Platform.Model
+@using Microsoft.EntityFrameworkCore
+@using Task = System.Threading.Tasks.Task
+@inject JavaExamContext DbContext
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+<br/><br/>
+<style>
+body
+{
+background: rgb(255,255,255);
+background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.22172619047619047) 100%);
+}
+.center
+{
+      margin: auto;
+      width: 80%;
+      padding: 20px;
+}     
+</style>
+<div class="center">
+    <div class="center">
+    <MudCard>
+        <MudCardMedia Image="images/registerBanner.png" Height="200"/>
+        <MudCardContent>
+            <MudText Typo="Typo.h5">Register</MudText>
+            <MudText Typo="Typo.caption">Create an account</MudText>
+            <MudTextField T="string" Label="Email" @bind-Value="@Email" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" AdornmentColor="Color.Primary"/>
+            <MudTextField Label="Password" @bind-Value="@Parola" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary"></MudTextField>
+            <MudTextField Label="Repeat password" @bind-Value="@RepeatPassword" InputType="InputType.Password" Error="@(!PasswordsMatch)" ErrorText="Passwords do not match" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary"></MudTextField>
+            <MudTextField T="string" Label="Last name" HelperText="Last name" @bind-Value="@Numele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
+            <MudTextField T="string" Label="First name" HelperText="First name" @bind-Value="@Prenumele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
+            <MudTextField T="string" Label="Faculty" @bind-Value="@Facultatea" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.School" AdornmentColor="Color.Primary"/>
+            <MudAutocomplete T="Specialization" Label="Specialization" @bind-Value="selectedSpecialization" Items="specializations" ToStringFunc="@(x => x.SpecializationName)" SearchFunc="@SearchSpecializations" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Book" AdornmentColor="Color.Primary"></MudAutocomplete>
+                        <MudAutocomplete T="Proctor" 
+                                          Label="Proctor Email" 
+                                          @bind-Value="selectedProctor" 
+                                          Items="proctors" 
+                                          ToStringFunc="@(x => x.Email)" 
+                                          SearchFunc="@SearchProctorsByEmail"
+                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.SupervisedUserCircle" AdornmentColor="Color.Primary">
+                         </MudAutocomplete>
+            <MudTextField T="string" Label="Year" HelperText="" @bind-Value="@Anul" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled._2k" AdornmentColor="Color.Primary"/>
+            <MudTextField T="string" Label="Group" HelperText="" @bind-Value="@Grupa" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleAlt" AdornmentColor="Color.Primary"/>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton OnClick="@OnRegisterButtonClick">Register</MudButton>
+            <MudNavLink Href="/loginStudent">Or log in as a student</MudNavLink>
+            <br/>
+            <MudNavLink Href="/loginAdmin">Or log in as proctor</MudNavLink>
+        </MudCardActions>
+    </MudCard>
+</div></div><br/><br/><br/>
+@code {
+   
+    private List<Specialization> specializations = new();
+    private Specialization selectedSpecialization;
+    private List<Proctor> proctors = new();
+    private Proctor selectedProctor;
+    
+    private string Email { get; set; }
+    private string Parola { get; set; }
+    private string RepeatPassword { get; set; }
+    private string Prenumele { get; set; }
+    private string Numele { get; set; }
+    private string Facultatea { get; set; }
+    private string Anul { get; set; }
+    private string Grupa { get; set; }
+    private bool PasswordsMatch => Parola == RepeatPassword;
+    private string message = "";  
+    private int alert = 0;
+    private int proctorID;
+
+    protected override async Task OnInitializedAsync()
+    {
+        specializations = await DbContext.Specializations.ToListAsync();
+        proctors = await DbContext.Proctors.ToListAsync();
+    }
+
+    private async Task<IEnumerable<Specialization>> SearchSpecializations(string value)
+    {
+    
+        await Task.Delay(5);
+
+    
+        if (string.IsNullOrEmpty(value))
+            return specializations;
+
+    
+        return specializations.Where(s => s.SpecializationName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+
+    private async Task<IEnumerable<Proctor>> SearchProctorsByEmail(string value)
+    {
+        await Task.Delay(5);
+
+        if (string.IsNullOrEmpty(value))
+            return proctors;
+
+        return proctors.Where(p => p.Email.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+
+   private async Task SubmitForm()
+    {
+        try
+        {
+            message = string.Empty; 
+            alert = 1; 
+
+            
+            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Parola) || string.IsNullOrWhiteSpace(RepeatPassword) || string.IsNullOrWhiteSpace(Numele) || string.IsNullOrWhiteSpace(Prenumele) || string.IsNullOrWhiteSpace(Facultatea) || selectedSpecialization == null || string.IsNullOrWhiteSpace(Anul) || string.IsNullOrWhiteSpace(Grupa))
+            {
+                message = "All fields are required!";
+                return;
+            }
+            
+            // Validate passwords match
+            if (!PasswordsMatch)
+            {
+                message = "Passwords do not match!";
+                return;
+            }
+            
+            // Check if the user with the provided email already exists
+            var existingUser = await DbContext.Studentis.FirstOrDefaultAsync(s => s.Email == Email);
+            if (existingUser != null)
+            {
+                message = "Account with the provided email already exists!";
+                return;
+            }
+
+            // Create a new student record. Do not set the StudentID.
+            Studenti newStudent = new Studenti
+            {
+                Email = Email,
+                Password = Parola,
+                FirstName = Prenumele,
+                LastName = Numele,
+                Faculty = Facultatea,
+                SpecializationId = selectedSpecialization.SpecializationId,
+                ProctorId = selectedProctor.ProctorId,
+                Year = Anul,
+                Groupa = Grupa
+            };
+
+            // Add the new student to the database
+            DbContext.Studentis.Add(newStudent);
+            await DbContext.SaveChangesAsync();
+            await LocalStorage.SetItemAsync("userID", newStudent.StudnetId);
+            await LocalStorage.SetItemAsync("StudentsProctorId", newStudent.ProctorId);
+
+            message = "Successfully registered! Redirecting...";
+            alert = 0; 
+            NavigationManager.NavigateTo("/indexStudent");
+        }
+        catch (Exception ex)
+        {
+            
+            Console.WriteLine(ex.Message); 
+            message = "An error occurred while registering! Please try again later.";
+        }
+    }
+    
+    private async Task OnRegisterButtonClick()
+    {
+        await SubmitForm();  
+        HandleSnackbar();  
+    }
+    
+    
+    private void HandleSnackbar()
+    {
+        if (alert == 0)
+        {
+            Snackbar.Add(message, Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(message, Severity.Error);
+        }
+    }
+}

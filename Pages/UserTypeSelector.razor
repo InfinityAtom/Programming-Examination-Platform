@@ -1,0 +1,58 @@
+﻿@layout LoginLayout
+@page "/"
+@using Microsoft.EntityFrameworkCore
+@using Programming_Examination_Platform.Model
+@using Task = System.Threading.Tasks.Task
+@inject JavaExamContext DbContext
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ISnackbar Snackbar
+<PageTitle>Select your account type</PageTitle>
+
+<br/><br/>
+<MudText Typo="Typo.h2" Align="Align.Center">Select your account type</MudText>
+<br/><br/>
+<style>
+          .center
+          {
+                margin: auto;
+                width: 80%;
+                padding: 20px;
+          }     
+</style>
+
+<div class="center">
+    <div class="center">
+        <MudStack Spacing="15" Row="true">
+            <MudCard>
+                <MudCardMedia Image="images/loginBanner.png" Height="200"/>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">I'm a Student</MudText>
+                    <br/>
+                    <MudText Typo="Typo.body2">Login into the system to access the resources of your exams</MudText>
+                    <br/>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="/loginStudent" Variant="Variant.Text" Color="Color.Primary">Log In</MudButton>
+                </MudCardActions>
+            </MudCard>
+            <MudCard>
+                <MudCardMedia Image="images/loginAdminBanner.png" Height="200"/>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5">I'm a Proctor</MudText>
+                    <br/>
+                    <MudText Typo="Typo.body2">Log in to manage your students and access your proctor resources</MudText>
+                    <br/>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="/loginAdmin" Variant="Variant.Text" Color="Color.Primary">Log In</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudStack>
+    </div>
+</div>
+<br/><br/>
+
+@code {
+
+}

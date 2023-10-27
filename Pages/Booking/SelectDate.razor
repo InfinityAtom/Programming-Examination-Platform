@@ -1,0 +1,151 @@
+﻿@page "/booking/Selectdate"
+@using Programming_Examination_Platform.Services
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject StudentService StudentService
+@inject NavigationManager NavManager;
+@inject ISnackbar Snackbar;
+
+<PageTitle>Programare la Examen</PageTitle>
+<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+    <MudText Typo="Typo.h5">
+        <strong>Programming Examination Platform</strong>
+    </MudText>
+    <MudSpacer/>
+    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
+    <MudText Typo="Typo.h6">@userEmail</MudText>
+    <MudMenu Icon="@Icons.Material.Filled.Menu">
+        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+    </MudMenu>
+</MudAppBar>
+<br/><br/>
+<MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+    <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Success">Select the exam</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Info">Select the exam date</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Normal">Confirm</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+</MudTimeline>
+<br/><br/>
+<style>
+.center
+{
+      margin: auto;
+      width: 80%;
+      padding: 20px;
+}     
+</style>
+<div class="center">
+    <div class="center">
+        <MudText Typo="Typo.h2" Align="Align.Center">Book your Exam</MudText>
+        <br/><br/>
+        <MudCard>
+            <MudCardMedia Image="images/dateBanner.png" Height="200"/>
+            <MudCardContent>
+                <MudText Typo="Typo.h5">Exam Date</MudText>
+                <MudText Typo="Typo.caption">Select a date below that you consider convenient for your exam! </MudText>
+                <br/><br/>
+                <MudDatePicker PickerVariant="PickerVariant.Dialog"
+                               Label="Exam Date"
+                               DateFormat="dd/MM/yyyy"
+                               TValue="DateTime?"
+                               IsDateDisabledFunc="@IsDateDisabled"
+                               @bind-Date="selectedDate" />
+
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton OnClick="ConfirmDate" Variant="Variant.Filled" Color="Color.Primary">Confirm</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </div>
+</div>
+
+
+@code {
+    //         
+
+    private int userID;
+    private int proctorID;
+    private string userEmail;
+    private int ExamID;
+    private DateTime? selectedDate = DateTime.Now;
+    private string _userRole;
+    private List<DateTime> availableExamDates;
+    
+
+    private async Task ConfirmDate()
+    {
+        if (selectedDate.HasValue)
+        {
+    // Fetch the relevant ExamSchedule entry for the selected date
+            var selectedExamSchedule = await StudentService.GetExamScheduleByDateAndProctorId(selectedDate.Value, proctorID);
+            if (selectedExamSchedule != null)
+            {
+                await LocalStorage.SetItemAsync("ExamScheduleId", selectedExamSchedule.ExamScheduleId);
+            }
+            
+            await LocalStorage.SetItemAsync("dateSelected", selectedDate.Value);
+            NavManager.NavigateTo("/booking/confirm");
+            Snackbar.Add("Date selected successfully!", Severity.Success);
+    // ... (rest of the code remains unchanged)
+        }
+        else
+        {
+            Snackbar.Add("Please select a date before confirming!", Severity.Error);
+        }
+    }
+
+    private bool IsDateDisabled(DateTime dt)
+    {
+        if (availableExamDates == null)
+        {
+            return true; // Disable all dates if the list isn't populated yet.
+        }
+    // Allow only the dates from availableExamDates list
+        return !availableExamDates.Contains(dt);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        userID = await LocalStorage.GetItemAsync<int>("userID");
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+        proctorID = await LocalStorage.GetItemAsync<int>("StudentsProctorId");
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
+        {
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        if (userID == -1) // or another value that represents "no ID"
+        {
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+
+        var student = await StudentService.GetStudentById(userID);
+        userEmail = student?.Email ?? "Email not found";
+        ExamID = await LocalStorage.GetItemAsync<int>("selectedExam");
+
+    // Fetch available exam dates for the student
+        availableExamDates = await StudentService.GetAvailableExamDatesForStudent(userID);
+    }
+
+
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync("userID", -1);
+        NavManager.NavigateTo("/loginStudent");
+    }
+
+
+}

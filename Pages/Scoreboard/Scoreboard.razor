@@ -1,0 +1,129 @@
+﻿@page "/scoreboard"
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@using Microsoft.EntityFrameworkCore.Infrastructure
+@inject NavigationManager NavManager;
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject StudentService StudentService
+<PageTitle>Results</PageTitle>
+
+<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+    <MudText Typo="Typo.h5">
+        <strong>Programming Examination Platform</strong>
+    </MudText>
+    <MudSpacer/>
+    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
+    <MudText Typo="Typo.h6">@userEmail</MudText>
+    <MudMenu Icon="@Icons.Material.Filled.Menu">
+        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+    </MudMenu>
+</MudAppBar>
+<br/>
+<br/>
+<style>
+.center
+{
+      margin: auto;
+      width: 80%;
+      padding: 20px;
+}     
+</style>
+<div class="center">
+    <div class="center">
+        <MudText Typo="Typo.h2" Align="Align.Center">Final scoreboard</MudText>
+        <br/><br/>
+        <MudSimpleTable Style="overflow-x: auto;">
+            <thead>
+            <tr>
+                <th>PLACE</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Final Grade</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var student in sortedStudents)
+            {
+                @if (student.Email == userEmail){
+                    <tr bgcolor="yellow">
+                        <td>@student.Place</td>
+                        <td>@student.FirstName</td>
+                        <td>@student.LastName</td>
+                        <td>@student.Email</td>
+                        <td>@student.FinalGrade</td>
+                    </tr>
+            }
+                else
+                {
+                    <tr>
+                        <td>@student.Place</td>
+                        <td>@student.FirstName</td>
+                        <td>@student.LastName</td>
+                        <td>@student.Email</td>
+                        <td>@student.FinalGrade</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </MudSimpleTable>
+    </div>
+</div>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/>
+@code{
+
+    private int userID;
+    private string userEmail;
+    private List<StudentWithGrade> sortedStudents = new List<StudentWithGrade>(); // Declare the sortedStudents list
+    private string _userRole;
+    protected override async Task OnInitializedAsync()
+    {
+        userID = await LocalStorage.GetItemAsync<int>("userID");
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+        
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
+        {
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        if (userID == -1) // or another value that represents "no ID"
+        {  
+           
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        var student = await StudentService.GetStudentById(userID);
+        userEmail = student?.Email ?? "Email not found";
+        var studentTasks = await StudentService.GetStudentsWithTasksAboveGrade(5);
+        int place = 1;
+        foreach (var studentTask in studentTasks.OrderByDescending(s => s.FinalGrade))
+        {
+            sortedStudents.Add(new StudentWithGrade
+            {
+                Place = place++,
+                FirstName = studentTask.Student.FirstName,
+                LastName = studentTask.Student.LastName,
+                Email = studentTask.Student.Email,
+                FinalGrade = studentTask.FinalGrade ?? 0
+            });
+        }
+        
+    }
+    
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync("userID", -1);
+        NavManager.NavigateTo("/loginStudent");
+    }
+    private class StudentWithGrade
+    {
+        public int Place { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public int FinalGrade { get; set; }
+    }
+}

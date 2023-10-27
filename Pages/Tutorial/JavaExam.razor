@@ -1,0 +1,116 @@
+﻿@page "/Tutorials/JavaExam"
+@using Programming_Examination_Platform.Services
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject StudentService StudentService
+@inject NavigationManager NavManager;
+<PageTitle>Exam tutorials/JavaExam</PageTitle>
+<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+    <MudText Typo="Typo.h5"><strong>Programming Examination Platform</strong></MudText>
+    <MudSpacer/>
+    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
+    <MudText Typo="Typo.h6">@userEmail</MudText>
+    <MudMenu Icon="@Icons.Material.Filled.Menu">
+        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+    </MudMenu>
+</MudAppBar>
+<br/><br/>
+<MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+    <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Success">Select an exam</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Info">See the tutorial</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+
+</MudTimeline>
+<br/><br/>
+<MudText Typo="Typo.h2">JavaExam Tutorial</MudText>
+<br/><br/>
+<MudStack Spacing="15" Row="true">
+    
+    <MudCarousel Style="height: 720px; width: 1280px; zoom: 100%" ShowArrows="@arrows" ShowBullets="@bullets" TData="object">
+        <MudCarouselItem Transition=Transition.Slide Color="@Color.Primary">
+            <div style="height:100%">
+                <img class = "mx-auto my-auto" src="images/Slide1.PNG" />
+            </div>
+        </MudCarouselItem>
+        <MudCarouselItem Transition=Transition.Slide Color="@Color.Secondary">
+            <div  style="height:100%">
+                <img  src="images/Slide2.PNG" />
+            </div>
+        </MudCarouselItem>
+        <MudCarouselItem Transition=Transition.Slide>
+            <div class="d-flex" style="height:100%">
+                <img src="images/Slide3.PNG" />
+            </div>
+        </MudCarouselItem>
+        <MudCarouselItem Transition=Transition.Slide>
+            <div  style="height:100%">
+                <img  src="images/Slide4.PNG" />
+            </div>
+        </MudCarouselItem>
+        <MudCarouselItem Transition=Transition.Slide>
+            <div style="height:100%">
+                <img  src="images/Slide5.PNG" />
+            </div>
+        </MudCarouselItem>
+        <MudCarouselItem Transition=Transition.Slide>
+            <div style="height:100%">
+                <img  src="images/Slide6.PNG" />
+            </div>
+        </MudCarouselItem>
+    </MudCarousel>
+    <MudSpacer/>    
+    <MudPaper Width="250px" Class="d-inline-flex py-3" Elevation="4">
+        <MudNavMenu Class="mud-width-full">
+            <MudText Typo="Typo.h6" Class="px-4">Exam tutorials</MudText>
+            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Quick navigation</MudText>
+            <MudDivider Class="my-2"/>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+            <MudNavGroup Title="Exam tutorials" Href="/tutorials" Icon="@Icons.Material.Filled.Book" Expanded="true">
+                <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Settings" IconColor="Color.Success">JavaExam</MudNavLink>
+            </MudNavGroup>
+        </MudNavMenu>
+    </MudPaper>
+</MudStack>
+<br/><br/><br/><br/><br/>
+
+@code
+{
+    private int userID;
+    private string userEmail;
+    private bool arrows = true;
+    private bool bullets = true;
+    private string _userRole;
+    protected override async Task OnInitializedAsync()
+    {
+        userID = await LocalStorage.GetItemAsync<int>("userID");
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+        
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
+        {
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        if (userID == -1) // or another value that represents "no ID"
+        {  
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        var student = await StudentService.GetStudentById(userID);
+        userEmail = student?.Email ?? "Email not found";
+    }
+    
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync("userID", -1);
+        NavManager.NavigateTo("/loginStudent");
+    }
+
+}

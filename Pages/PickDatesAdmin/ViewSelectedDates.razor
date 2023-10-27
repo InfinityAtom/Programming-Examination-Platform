@@ -1,0 +1,205 @@
+﻿@page "/ViewPlannedExams"
+@layout MainLayoutAdmin
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@using MudBlazor.Extensions
+@inject NavigationManager NavManager;
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ProctorService ProctorService
+@inject ISnackbar Snackbar;
+
+<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+    <MudText Typo="Typo.h5">
+        <strong>PeP Management</strong>
+    </MudText>
+    <MudSpacer/>
+    <MudIconButton Icon="@Icons.Material.Filled.Shield" Color="Color.Inherit"/>
+    <MudText Typo="Typo.h6">@_userEmail</MudText>
+    <MudMenu Icon="@Icons.Material.Filled.Menu">
+        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+    </MudMenu>
+</MudAppBar>
+<br/><br/>
+<MudText Typo="Typo.h2" Align="Align.Center">Planned Exams</MudText>
+<br/><br/>
+
+<br/><br/>
+<style>
+.center
+{
+      margin: auto;
+      width: 80%;
+      padding: 20px;
+}     
+</style>
+<div class="center">
+    <div class="center">
+        <MudButton Href="/DatePick" Color="Color.Success" StartIcon="@Icons.Material.Filled.AddBox">Add a new planification</MudButton>
+        <br/><br/>
+        <MudStack Spacing="15" Row="false">
+            @if (schedules.Capacity > 0)
+            {
+                @foreach (var schedule in schedules)
+                {
+                    if (schedule.AvailablePlaces > 0)
+                    {
+                        <MudCard Elevation="5">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h5">
+                                        <strong>Booking: #@schedule.ExamScheduleId</strong>
+                                    </MudText>
+                                </CardHeaderContent>
+                                <CardHeaderActions>
+                                    <MudIconButton Icon="@Icons.Material.Filled.DateRange" Size="Size.Large"/>
+                                </CardHeaderActions>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudField Label="Exam Planned on:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@schedule.Date.ToIsoDateString()</MudField>
+                                <MudField Label="Room:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork">@schedule.RoomName</MudField>
+                                <MudField Label="Total places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.EventSeat">@schedule.TotalPlaces</MudField>
+                                <MudField Label="Available places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra">
+                                    <strong>@schedule.AvailablePlaces</strong>
+                                </MudField>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudStack Spacing="15" Row="true">
+                                    <MudButton Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteForever" @onclick="() => DeleteExam(schedule.ExamScheduleId)">DELETE</MudButton>
+                                    <MudButton Color="Color.Info" StartIcon="@Icons.Material.Filled.Edit" @onclick="() => OnEditButtonClick(schedule.ExamScheduleId)">EDIT</MudButton>
+                                    <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Filled.SupervisedUserCircle" @onclick="() => OnViewStudentsButtonClick(schedule.ExamScheduleId)">View the students that booked on this date</MudButton>
+                                </MudStack>
+                            </MudCardActions>
+                        </MudCard>
+                    }
+                    else
+                    {
+                        <MudCard>
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h5">
+                                        <strong>Booking: #@schedule.ExamScheduleId IS FULLY BOOKED</strong>
+                                    </MudText>
+                                </CardHeaderContent>
+                                <CardHeaderActions>
+                                    <MudIconButton Icon="@Icons.Material.Filled.DateRange" Size="Size.Large"/>
+                                </CardHeaderActions>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudField AdornmentColor="Color.Error" Label="Exam Planned on:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@schedule.Date.ToIsoDateString()</MudField>
+                                <MudField AdornmentColor="Color.Error" Label="Room:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork">@schedule.RoomName</MudField>
+                                <MudField AdornmentColor="Color.Error" Label="Total places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.EventSeat">@schedule.TotalPlaces</MudField>
+                                <MudField AdornmentColor="Color.Error" Label="Available places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra">
+                                    <strong>NO AVAILABLE PLACES</strong>
+                                </MudField>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudStack Spacing="15" Row="true">
+                                    <MudButton Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteForever" @onclick="() => DeleteExam(schedule.ExamScheduleId)">DELETE</MudButton>
+                                    <MudButton Color="Color.Info" StartIcon="@Icons.Material.Filled.Edit" @onclick="() => OnEditButtonClick(schedule.ExamScheduleId)">ADD MORE PLACES</MudButton>
+                                    <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Filled.SupervisedUserCircle" @onclick="() => OnViewStudentsButtonClick(schedule.ExamScheduleId)">View the students that booked on this date</MudButton>
+                                </MudStack>
+                            </MudCardActions>
+                        </MudCard>
+                    }
+                }
+            }
+            else
+            {
+                <MudText Typo="Typo.h5" Align="Align.Center">There is nothing to display!</MudText>
+            }
+        </MudStack>
+    </div>
+</div>
+
+<br/><br/><br/><br/><br/><br/>
+
+@code {
+    private int _userID;
+    private string _userEmail;
+    private string _selectedExam;
+    private string _selectedDate;
+    private bool _checkIfHasBookedExam;
+    private int _bookingID;
+
+    private string _studentStatus;
+
+    private int _daysTillExam;
+
+    //Constants
+        private const string _localStorageUserId = "proctorID";
+        private const string _navigationToLogin = "/";
+        private const string _emailError = "Email not found";
+    private string _userRole;
+    private List<ExamSchedule> schedules = new List<ExamSchedule>();
+
+    private async Task DeleteExam(int examScheduleId)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ExamScheduleId", examScheduleId);
+
+        var dialogReference = DialogService.Show<DialogDelete>("Delete Confirmation", parameters);
+
+        var dialogResult = await dialogReference.Result;
+
+        if (dialogResult.Cancelled)
+        {
+            Snackbar.Add("Deletion was cancelled", Severity.Info);
+        }
+        else
+        {
+            bool wasSuccessful = (bool)dialogResult.Data;
+            if (wasSuccessful)
+            {
+                Snackbar.Add("Exam schedule and associated bookings deleted successfully!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete the exam schedule!", Severity.Error);
+            }
+        }
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Student")
+        {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+
+        _userID = await LocalStorage.GetItemAsync<int>(_localStorageUserId);
+        schedules = await ProctorService.GetExamScheduleByProctorId(_userID);
+        if (_userID == -1) // or another value that represents "no ID"
+        {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+
+        var proctor = await ProctorService.GetProctorById(_userID);
+        _userEmail = proctor?.Email ?? _emailError;
+    }
+
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync(_localStorageUserId, -1);
+        NavManager.NavigateTo(_navigationToLogin);
+    }
+
+    private async Task OnEditButtonClick(int bookingId)
+    {
+        await LocalStorage.SetItemAsync("editingBookingId", bookingId);
+        NavManager.NavigateTo("/editplannedexams");
+    }
+    private async Task OnViewStudentsButtonClick(int bookingId)
+    {
+        await LocalStorage.SetItemAsync("studentsBookedAtExamId", bookingId);
+        NavManager.NavigateTo("/students-bookviewer");
+    }
+
+}

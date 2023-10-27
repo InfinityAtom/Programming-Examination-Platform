@@ -1,0 +1,41 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    
+<MudThemeProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+<main>
+    <article class="content px-4">
+        @Body
+    </article>
+     <footer>
+            <div class="footer-clean">
+                <footer>
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-sm-4 col-md-3 item">
+                                <h3>Programming Examination Platform</h3>
+                                <ul>
+                                    <li><a href="https://www.infinity-atom.ro">Download it now!</a></li>
+                                    <li><a href="https://www.infinity-atom.ro">Visit our website</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-sm-4 col-md-3 item">
+                                <h3>JetBrains's IntelliJ IDEA</h3>
+                                <ul>
+                                    <li><a href="#">Download it now!</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-lg-3 item social">
+                                <img src="images/logo.png"/>
+                                <p class="copyright">© 2019-2023 - Infinity Atom </p>
+                                <p class="copyright">All Rights Reserved</p>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </footer>
+</main>
+</div>

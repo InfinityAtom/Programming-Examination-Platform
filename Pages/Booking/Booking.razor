@@ -1,0 +1,92 @@
+﻿@page "/booking/selectexam"
+@using Programming_Examination_Platform.Services
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject StudentService StudentService
+@inject NavigationManager NavManager;
+
+<PageTitle>Programare la Examen</PageTitle>
+<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+    <MudText Typo="Typo.h5"><strong>Programming Examination Platform</strong></MudText>
+    <MudSpacer/>
+    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
+    <MudText Typo="Typo.h6">@userEmail</MudText>
+    <MudMenu Icon="@Icons.Material.Filled.Menu">
+        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+    </MudMenu>
+</MudAppBar>
+<br/><br/>
+<MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+    <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Info">Select the exam</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Normal">Select the exam date</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+    <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+        <ItemContent>
+            <MudAlert Severity="Severity.Normal">Confirm</MudAlert>
+        </ItemContent>
+    </MudTimelineItem>
+</MudTimeline>
+
+<br/><br/>
+<MudText Typo="Typo.h2">Select an exam</MudText>
+<br/><br/>
+<MudStack Spacing="15" Row="true">
+    <MudCard>
+        <MudCardMedia Image="images/jexam.png" Height="200" />
+        <MudCardContent>
+            <MudText Typo="Typo.h5">Java Exam</MudText>
+            <br/>
+            <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
+            <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+            <MudText Typo="Typo.body2">in Year II for the ETTI / CALC / TI profiles</MudText>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton OnClick="HandleSelecteazaClick"  Href="/booking/selectdate" Variant="Variant.Text" Color="Color.Primary">Select</MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudStack>
+<br/><br/><br/><br/><br/>
+
+@code {
+    private int userID;
+    private string userEmail;
+    private string _userRole;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        userID = await LocalStorage.GetItemAsync<int>("userID");
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+        
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
+        {
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+
+        if (userID == -1) // or another value that represents "no ID"
+        {  
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        var student = await StudentService.GetStudentById(userID);
+        userEmail = student?.Email ?? "Email not found";
+    }
+    
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync("userID", -1);
+        NavManager.NavigateTo("/login");
+    }
+    private async Task HandleSelecteazaClick()
+    {
+        await LocalStorage.SetItemAsync("selectedExam", 1);
+    }
+}

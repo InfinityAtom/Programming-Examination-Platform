@@ -1,0 +1,123 @@
+﻿@layout MainLayoutAdmin
+@page "/ia-admin"
+@using Programming_Examination_Platform.Services
+@inject NavigationManager NavManager;
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ProctorService ProctorService
+
+<PageTitle>Dashboard Admin</PageTitle>
+<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+    <MudText Typo="Typo.h5">
+        <strong>PeP Management</strong>
+    </MudText>
+    <MudSpacer/>
+    <MudIconButton Icon="@Icons.Material.Filled.Shield" Color="Color.Inherit"/>
+    <MudText Typo="Typo.h6">@_userEmail</MudText>
+    <MudMenu Icon="@Icons.Material.Filled.Menu">
+        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+    </MudMenu>
+</MudAppBar>
+<br/><br/>
+
+    <MudText Typo="Typo.h2">Dashboard Admin</MudText>
+    <br/>
+    <br/>
+
+<MudText Typo="Typo.h3">Proctor Tools</MudText>
+<br/><br/>
+<MudStack Spacing="15" Row="true">
+    <MudCard>
+        <MudCardMedia Image="images/viewUsersBanner.png" Height="200"/>
+        <MudCardContent>
+            <MudText Typo="Typo.h5">View the students</MudText>
+            <MudText Typo="Typo.body2">View the students that are currently subscribed to you.&#8195; &#8195; &#8195;</MudText>
+            <br/>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Href="/view-users" Variant="Variant.Text" Color="Color.Primary">View</MudButton>
+        </MudCardActions>
+    </MudCard>
+    <MudCard>
+        <MudCardMedia Image="images/datePicker.png" Height="200"/>
+        <MudCardContent>
+            <MudText Typo="Typo.h5">Pick a date for the exam</MudText>
+            <MudText Typo="Typo.body2">Define the dates you want your students to book their exam.&#8195; &#8195; &#8195;</MudText>
+            <br/>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Href="/ViewPlannedExams" Variant="Variant.Text" Color="Color.Primary">Pick</MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudStack>
+<br/><br/><br/>
+
+
+<style>
+  .my-custom-class {
+    backdrop-filter: blur(50px);
+  }
+</style>
+
+@code {
+    //Variables:
+    private int _userID;
+    private string _userEmail;
+    private string _selectedExam;
+    private string _selectedDate;
+    private bool _checkIfHasBookedExam;
+
+    private string _studentStatus;
+    
+    private int _daysTillExam;
+
+    //Constants
+        private const string _localStorageUserId = "proctorID";
+        private const string _navigationToLogin = "/";
+        private const string _emailError = "Email not found";
+        private const string _cssClassForDialogContext = "my-custom-class";
+        private const string _dialogTitle = "⚠️ Warning";
+        private string _userRole;
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+        
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Student")
+        {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+        
+        _userID = await LocalStorage.GetItemAsync<int>(_localStorageUserId);
+        if (_userID == -1) // or another value that represents "no ID"
+        {  
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+        
+            var proctor = await ProctorService.GetProctorById(_userID);
+            _userEmail = proctor?.Email ?? _emailError;
+    }
+
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync(_localStorageUserId, -1);
+        NavManager.NavigateTo(_navigationToLogin);
+    }
+
+    private void OpenDialog1()
+    {
+        var options = new DialogOptions { ClassBackground = _cssClassForDialogContext };
+        DialogService.Show<DialogPeP>(_dialogTitle, options);
+    }
+
+    private void OpenDialog2()
+    {
+        var options = new DialogOptions { ClassBackground = _cssClassForDialogContext };
+        DialogService.Show<DialogIJ>(_dialogTitle, options);
+    }
+
+}

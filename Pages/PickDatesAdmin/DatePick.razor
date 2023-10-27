@@ -1,0 +1,124 @@
+﻿@page "/DatePick"
+@layout MainLayoutAdmin
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@inject NavigationManager NavManager;
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ProctorService ProctorService
+@inject ISnackbar Snackbar;
+
+<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+    <MudText Typo="Typo.h5">
+        <strong>PeP Management</strong>
+    </MudText>
+    <MudSpacer/>
+    <MudIconButton Icon="@Icons.Material.Filled.Shield" Color="Color.Inherit"/>
+    <MudText Typo="Typo.h6">@_userEmail</MudText>
+    <MudMenu Icon="@Icons.Material.Filled.Menu">
+        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+    </MudMenu>
+</MudAppBar>
+<style>
+.center
+{
+      margin: auto;
+      width: 80%;
+      padding: 20px;
+}     
+</style>
+<div class="center">
+    <div class="center">
+        <MudText Typo="Typo.h2" Align="Align.Center">Pick a date</MudText>
+        <br/><br/>
+        <MudCard>
+            <MudCardMedia Image="images/datePicker.png" Height="200"/>
+            <MudCardContent>
+                <MudText Typo="Typo.h5">This form is designed for you to select exam dates</MudText>
+                <MudText Typo="Typo.caption">When the student's will book their exam, they will only be able to pick a date that you set!</MudText>
+                <br/><br/>
+                <MudDatePicker PickerVariant="PickerVariant.Dialog"
+                               Label="Exam Date"
+                               DateFormat="dd/MM/yyyy"
+                               TValue="DateTime?"
+                               @bind-Date="_selectedDate"/>
+                <MudTextField T="string" Label="Exam Room Name" @bind-Value="_examRoomName" HelperText="" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork" AdornmentColor="Color.Primary"/>
+                <MudTextField T="string" Label="Number of seats" @bind-Value="_numberOfSeats" HelperText="" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra" AdornmentColor="Color.Primary"/>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="HandleConfirmClick">Confirm</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </div>
+</div>
+<br/><br/>
+
+
+@code {
+    private int _userID;
+    private string _userEmail;
+    private string _selectedExam;
+    private DateTime? _selectedDate = DateTime.Now;
+    private bool _checkIfHasBookedExam;
+    private string _examRoomName;
+    private string _numberOfSeats;
+
+    private string _studentStatus;
+
+    private int _daysTillExam;
+
+    //Constants
+        private const string _localStorageUserId = "proctorID";
+        private const string _navigationToLogin = "/";
+        private const string _emailError = "Email not found";
+    private string _userRole;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Student")
+        {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+
+        _userID = await LocalStorage.GetItemAsync<int>(_localStorageUserId);
+    // await LocalStorage.SetItemAsync("selectedDate", _selectedDate.Value);
+        if (_userID == -1) // or another value that represents "no ID"
+        {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+
+        var proctor = await ProctorService.GetProctorById(_userID);
+        _userEmail = proctor?.Email ?? _emailError;
+    }
+
+    private async Task HandleConfirmClick()
+    {
+    // Create a new ExamSchedule instance and populate it
+        var examSchedule = new ExamSchedule
+        {
+            ProctorId = _userID,
+            ExamId = 1,
+            Date = _selectedDate,
+            RoomName = _examRoomName,
+            TotalPlaces = Convert.ToInt32(_numberOfSeats),
+            AvailablePlaces = Convert.ToInt32(_numberOfSeats)
+        };
+        await ProctorService.AddExamSchedule(examSchedule);
+        Snackbar.Add("Exam schedule added successfully!", Severity.Success);
+        NavManager.NavigateTo("/ViewPlannedExams");
+    }
+
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync(_localStorageUserId, -1);
+        NavManager.NavigateTo(_navigationToLogin);
+    }
+
+}

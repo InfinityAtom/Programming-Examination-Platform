@@ -1,0 +1,409 @@
+﻿@page "/Results"
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@using Microsoft.EntityFrameworkCore.Infrastructure
+@inject NavigationManager NavManager;
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject StudentService StudentService
+<PageTitle>Results</PageTitle>
+
+    <MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
+        <MudText Typo="Typo.h5">
+            <strong>Programming Examination Platform</strong>
+        </MudText>
+        <MudSpacer/>
+        <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
+        <MudText Typo="Typo.h6">@userEmail</MudText>
+        <MudMenu Icon="@Icons.Material.Filled.Menu">
+            <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
+        </MudMenu>
+    </MudAppBar>
+    <br/>
+<br/>
+@if (finalGrade != "No Grade")
+{
+    <MudText Typo="Typo.h2">Exam summary</MudText>
+    <br/>
+    <br/>
+    <MudStack Spacing="15" Row="true">
+        <MudCard>
+            
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Student's personal information</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.PeopleAlt"/>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText>Last Name: <strong> @student?.LastName </strong> </MudText>
+                <MudText>First Name: <strong> @student?.FirstName </strong> </MudText>
+                <MudText>Email: <strong> @student?.Email </strong> </MudText>
+                <MudText>Year: <strong> @student?.Year</strong> </MudText>
+                <MudText>Faculty: <strong> @student?.Faculty</strong> </MudText>
+                <MudText>Specialization: <strong> @student?.SpecializationId.ToString()</strong> </MudText>
+                <MudText>Group: <strong> @student?.Year </strong> </MudText>
+            </MudCardContent>
+        </MudCard>
+        <MudCard>
+            <!--The card you are looking for-->
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Exam information</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.CalendarMonth"/>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText>Exam: <strong>JavaExam</strong> </MudText>
+                <MudText>Booked on date: </MudText>
+                <MudText Typo="Typo.h3">
+                    <strong> @selectedDate</strong>
+                </MudText>
+
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Grade:</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.Grade"/>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <br/>
+                <MudText>Final grade:</MudText>
+                <MudText Typo="Typo.h3">
+                    <strong>@finalGrade &#8195; &#8195; &#8195;</strong>
+                </MudText>
+            </MudCardContent>
+        </MudCard>
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h5">Final status:</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    @if (studentStatus == "Succeeded")
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success"/>
+                    }
+                    @if (studentStatus == "Failed")
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Error" Color="Color.Error"/>
+                    }
+                    @if (studentStatus == "No Status")
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.QuestionMark" Color="Color.Info"/>
+                    }
+                </CardHeaderActions>
+
+            </MudCardHeader>
+            <MudCardContent>
+                <br/>
+                <MudText>Status:</MudText>
+                @if (studentStatus == "Succeeded")
+                {
+                    <MudText Typo="Typo.h3" Color="Color.Success">
+                        <strong>@studentStatus &#8195; &#8195;</strong>
+                    </MudText>
+                }
+                @if (studentStatus == "Failed")
+                {
+                    <MudText Typo="Typo.h3" Color="Color.Error">
+                        <strong>@studentStatus &#8195; &#8195;</strong>
+                    </MudText>
+                }
+                @if (studentStatus == "No Status")
+                {
+                    <MudText Typo="Typo.h3" Color="Color.Info">
+                        <strong>@studentStatus &#8195; &#8195;</strong>
+                    </MudText>
+                }
+
+            </MudCardContent>
+        </MudCard>
+
+    </MudStack>
+    <br/>
+    <br/>
+    <br/>
+    <MudText Typo="Typo.h2">Exam Details</MudText>
+    <br/>
+    <br/>
+    <MudExpansionPanels MultiExpansion="true" DisableBorders="true" Elevation="2">
+
+        <MudExpansionPanel HideIcon="true">
+            <TitleContent>
+                @switch (t1s)
+                {
+                    case "Correctly Solved":
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 1</strong> </MudText>
+                        </div>
+                        break;
+                    case "Incorrectly Solved":
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.Dangerous" Color="Color.Error" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 1</strong></MudText>
+                        </div>
+                        break;
+                    default:
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.QuestionMark" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 1</strong></MudText>
+                        </div>
+                        break;
+                }
+
+            </TitleContent>
+            <ChildContent>
+                <MudText Class="mt-1"><strong>Task:</strong> @t1c</MudText>
+                <MudText Class="mt-1"><strong>Correct/Incorrect:</strong> @t1s</MudText>
+                <MudText Class="mt-1"><strong>Feedback:</strong> @t1e</MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel HideIcon="true">
+            <TitleContent>
+                @switch (t2s)
+                {
+                    case "Correctly Solved":
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 2</strong> </MudText>
+                        </div>
+                        break;
+                    case "Incorrectly Solved":
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.Dangerous" Color="Color.Error" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 2</strong></MudText>
+                        </div>
+                        break;
+                    default:
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.QuestionMark" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 2</strong></MudText>
+                        </div>
+                        break;
+                }
+
+            </TitleContent>
+            <ChildContent>
+                <MudText Class="mt-1"><strong>Task:</strong> @t2c</MudText>
+                <MudText Class="mt-1"><strong>Correct/Incorrect:</strong> @t2s</MudText>
+                <MudText Class="mt-1"><strong>Feedback:</strong> @t2e</MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel HideIcon="true">
+            <TitleContent>
+                @switch (t3s)
+                {
+                    case "Correctly Solved":
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 3</strong> </MudText>
+                        </div>
+                        break;
+                    case "Incorrectly Solved":
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.Dangerous" Color="Color.Error" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 3</strong></MudText>
+                        </div>
+                        break;
+                    default:
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.QuestionMark" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 3</strong></MudText>
+                        </div>
+                        break;
+                }
+
+            </TitleContent>
+            <ChildContent>
+                <MudText Class="mt-1"><strong>Task:</strong> @t3c</MudText>
+                <MudText Class="mt-1"><strong>Correct/Incorrect:</strong> @t3s</MudText>
+                <MudText Class="mt-1"><strong>Feedback:</strong> @t3e</MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel HideIcon="true">
+            <TitleContent>
+                @switch (t4s)
+                {
+                    case "Correctly Solved":
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 4</strong> </MudText>
+                        </div>
+                        break;
+                    case "Incorrectly Solved":
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.Dangerous" Color="Color.Error" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 4</strong></MudText>
+                        </div>
+                        break;
+                    default:
+                        <div class="d-flex">
+                            <MudIcon Icon="@Icons.Material.Filled.QuestionMark" class="mr-3"></MudIcon>
+                            <MudText Class="mt-1"><strong>Task 4</strong></MudText>
+                        </div>
+                        break;
+                }
+
+            </TitleContent>
+            <ChildContent>
+                <MudText Class="mt-1"><strong>Task:</strong> @t4c</MudText>
+                <MudText Class="mt-1"><strong>Correct/Incorrect:</strong> @t4s</MudText>
+                <MudText Class="mt-1"><strong>Feedback:</strong> @t4e</MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+    <br/>
+}
+@if(finalGrade=="No Grade")
+{
+    <MudText Typo="Typo.h2">Information</MudText>
+    <br/><br/>
+    <MudText Typo="Typo.h5">In order to access your exam content and results, sustain an exam!</MudText>
+    <br/><br/>
+    if (checkIfHasBookedExam == false)
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Success" Href="/booking/selectexam">Book your exam now</MudButton>
+    }
+    else
+    {
+        <MudText Typo="Typo.h6">It looks like you already have an exam booked on: <strong>@selectedDate</strong>.<br/>Take your exam, and come back on this page after the date mentioned!</MudText>
+    }
+    <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+}
+
+@code {
+    private Studenti? student;
+    private Booking? booking;
+    private Model.Task? grade;
+    private Model.Task? tasksList;
+    private int userID;
+    private string userEmail;
+    private int ExamID;
+    private string selectedExam;
+    private string selectedDate;
+    private bool checkIfHasBookedExam;
+    private string studentStatus;
+    public string finalGrade;
+    private string t1c;
+    private string t1e;
+    private string t1s;
+    private string t2c;
+    private string t2e;
+    private string t2s;
+    private string t3c;
+    private string t3e;
+    private string t3s;
+    private string t4c;
+    private string t4e;
+    private string t4s;
+    private string _userRole;
+    protected override async Task OnInitializedAsync()
+    {
+        userID = await LocalStorage.GetItemAsync<int>("userID");
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+        
+    // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
+        {
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        if (userID == -1) // or another value that represents "no ID"
+        {
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+        student = await StudentService.GetStudentById(userID);
+        userEmail = student?.Email ?? "Email not found";
+        ExamID = await LocalStorage.GetItemAsync<int>("selectedExam");
+        booking = await StudentService.GetBookingByUserId(userID);
+
+        if (booking != null)
+        {
+            checkIfHasBookedExam = true;
+            selectedExam = booking.ExamId == 1 ? "JavaExam" : "Unknown Exam";
+            selectedDate = booking.BookingDate.ToString("dd.MM.yyyy");
+        }
+        else
+        {
+            checkIfHasBookedExam = false;
+            selectedExam = "-";
+            selectedDate = "-";
+        }
+        grade = await StudentService.GetTaskByUserId(userID);
+
+        if (grade != null)
+        {
+            finalGrade = grade.FinalGrade.ToString() + ".00";
+        }
+        else
+        {
+            finalGrade = "No Grade";
+        }
+
+        if (grade != null && grade.FinalGrade >= 5)
+        {
+            studentStatus = "Succeeded";
+        }
+        else if (grade != null && grade.FinalGrade < 5)
+        {
+            studentStatus = "Failed";
+        }
+        else if (grade == null)
+        {
+            studentStatus = "No Status";
+        }
+        tasksList = await StudentService.GetTaskByUserId(userID);
+        if (tasksList != null)
+        {
+            t1c = tasksList.Task1Content;
+            t1e = tasksList.Task1Explanation;
+            t1s = tasksList.Task1State;
+            t2c = tasksList.Task2Content;
+            t2e = tasksList.Task2Explanation;
+            t2s = tasksList.Task2State;
+            t3c = tasksList.Task3Content;
+            t3e = tasksList.Task3Explanation;
+            t3s = tasksList.Task3State;
+            t4c = tasksList.Task4Content;
+            t4e = tasksList.Task4Explanation;
+            t4s = tasksList.Task4State;
+        }
+        else
+        {
+            t1c = "-";
+            t1e = "-";
+            t1s = "-";
+            t2c = "-";
+            t2e = "-";
+            t2s = "-";
+            t3c = "-";
+            t3e = "-";
+            t3s = "-";
+            t4c = "-";
+            t4e = "-";
+            t4s = "-";
+        }
+            
+    }
+    
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync("userID", -1);
+        NavManager.NavigateTo("/loginStudent");
+    }
+}
+

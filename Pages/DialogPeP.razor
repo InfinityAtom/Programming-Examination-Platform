@@ -1,0 +1,15 @@
+﻿<MudDialog>
+    <DialogContent>
+        You are about to leave the website to an external link!
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Href="https://1drv.ms/u/s!Am5CJiJLkP308WRUCv9OY-neL4ka?e=92xHFn">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Cancel();
+}

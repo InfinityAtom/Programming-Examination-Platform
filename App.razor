@@ -1,0 +1,25 @@
+﻿
+<link type="text/css" rel="stylesheet" href="css/404.css" />
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+	    <PageTitle>Not found</PageTitle>
+	    
+	    <LayoutView Layout="@typeof(MainLayout)">
+		    
+		    <div id="notfound">
+			    <div class="notfound">
+				    <div class="notfound-404">
+					    <h1>Oops!</h1>
+				    </div>
+				    <h2>404 - Page not found</h2>
+				    <p>The page you are looking for might have been removed had its name changed or is temporarily unavailable.</p>
+				    <a href="/">Go To Homepage</a>
+			    </div>
+		    </div>
+	    </LayoutView>
+    </NotFound>
+</Router>
