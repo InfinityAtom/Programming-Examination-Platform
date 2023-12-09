@@ -1,5 +1,8 @@
 ﻿@page "/booking/Selectdate"
 @using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@using MudBlazor.Extensions
 @inject IDialogService DialogService
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject StudentService StudentService
@@ -7,37 +10,54 @@
 @inject ISnackbar Snackbar;
 
 <PageTitle>Programare la Examen</PageTitle>
-<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
-    <MudText Typo="Typo.h5">
-        <strong>Programming Examination Platform</strong>
-    </MudText>
-    <MudSpacer/>
-    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
-    <MudText Typo="Typo.h6">@userEmail</MudText>
-    <MudMenu Icon="@Icons.Material.Filled.Menu">
-        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
-    </MudMenu>
+<MudLayout>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+  <div style="padding: 10px; display: flex; align-items: center;">
+    <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
+  </div>
+  <MudSpacer/>
+  <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
+  <MudText Typo="Typo.h6">@userEmail</MudText>
 </MudAppBar>
-<br/><br/>
-<MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
-    <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
-        <ItemContent>
-            <MudAlert Severity="Severity.Success">Select the exam</MudAlert>
-        </ItemContent>
-    </MudTimelineItem>
-    <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
-        <ItemContent>
-            <MudAlert Severity="Severity.Info">Select the exam date</MudAlert>
-        </ItemContent>
-    </MudTimelineItem>
-    <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
-        <ItemContent>
-            <MudAlert Severity="Severity.Normal">Confirm</MudAlert>
-        </ItemContent>
-    </MudTimelineItem>
-</MudTimeline>
-<br/><br/>
-<style>
+<MudDrawer @bind-Open="@open" Elevation="0">
+  <MudNavMenu>
+    <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+    <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
+    <MudDivider Class="my-2"/>
+    <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+    <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
+    <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
+    <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
+    <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.Settings" Expanded="true">
+      <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
+    </MudNavGroup>
+    <MudDivider Class="my-2"/>
+    <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+  </MudNavMenu>
+</MudDrawer>
+<MudMainContent Class="pt-16 px-16">
+    <MudContainer Class="mt-6">
+        <br/><br/>
+        <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+            <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
+                <ItemContent>
+                    <MudAlert Severity="Severity.Success">Select the exam</MudAlert>
+                </ItemContent>
+            </MudTimelineItem>
+            <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
+                <ItemContent>
+                    <MudAlert Severity="Severity.Info">Select the exam date</MudAlert>
+                </ItemContent>
+            </MudTimelineItem>
+            <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+                <ItemContent>
+                    <MudAlert Severity="Severity.Normal">Confirm</MudAlert>
+                </ItemContent>
+            </MudTimelineItem>
+        </MudTimeline>
+        <br/><br/>
+        <style>
 .center
 {
       margin: auto;
@@ -45,81 +65,122 @@
       padding: 20px;
 }     
 </style>
-<div class="center">
-    <div class="center">
-        <MudText Typo="Typo.h2" Align="Align.Center">Book your Exam</MudText>
-        <br/><br/>
-        <MudCard>
-            <MudCardMedia Image="images/dateBanner.png" Height="200"/>
-            <MudCardContent>
-                <MudText Typo="Typo.h5">Exam Date</MudText>
-                <MudText Typo="Typo.caption">Select a date below that you consider convenient for your exam! </MudText>
+        <div class="center">
+            <div class="center">
+                <MudText Typo="Typo.h2" Align="Align.Center">Book your Exam</MudText>
                 <br/><br/>
-                <MudDatePicker PickerVariant="PickerVariant.Dialog"
-                               Label="Exam Date"
-                               DateFormat="dd/MM/yyyy"
-                               TValue="DateTime?"
-                               IsDateDisabledFunc="@IsDateDisabled"
-                               @bind-Date="selectedDate" />
-
-            </MudCardContent>
-            <MudCardActions>
-                <MudButton OnClick="ConfirmDate" Variant="Variant.Filled" Color="Color.Primary">Confirm</MudButton>
-            </MudCardActions>
-        </MudCard>
-    </div>
-</div>
-
+                @if (schedules != null && schedules.Any())
+                {
+                    @foreach (var schedule in schedules)
+                    {
+                        if (schedule.AvailablePlaces > 0)
+                        {
+                            <MudCard Elevation="5">
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudText Typo="Typo.h5">
+                                            <strong>
+                                                Exam date: @schedule.Date.Value.ToString("MMMM dd yyyy") 
+                                            </strong>
+                                        </MudText>
+                                    </CardHeaderContent>
+                                    <CardHeaderActions>
+                                        <MudIconButton Icon="@Icons.Material.Filled.DateRange" Size="Size.Large"/>
+                                    </CardHeaderActions>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudField Label="Exam starts at:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Timer">@schedule.Date.Value.ToString("t")</MudField>
+                                    <MudField Label="Room:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork">@schedule.RoomName</MudField>
+                                    <MudField Label="Total places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.EventSeat">@schedule.TotalPlaces</MudField>
+                                    <MudField Label="Available places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra">
+                                        <strong>@schedule.AvailablePlaces</strong>
+                                    </MudField>
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Filled.DateRange"
+                                               @onclick="() => OnViewStudentsButtonClick(schedule.ExamScheduleId)">
+                                        Select date
+                                    </MudButton>
+                                </MudCardActions>
+                            </MudCard>
+                            <br/><br/>
+                        }
+                        else
+                        {
+                            <MudCard Elevation="0">
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudText Typo="Typo.h5">
+                                            <strong>Not Available</strong>
+                                        </MudText>
+                                    </CardHeaderContent>
+                                    <CardHeaderActions>
+                                        <MudIconButton Icon="@Icons.Material.Filled.DateRange" Size="Size.Large"/>
+                                    </CardHeaderActions>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudField Label="Exam Planned on:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@schedule.Date.Value</MudField>
+                                    <MudField Label="Room:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork">@schedule.RoomName</MudField>
+                                    <MudField Label="Total places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.EventSeat">@schedule.TotalPlaces</MudField>
+                                    <MudField Label="Available places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra">
+                                        <strong>@schedule.AvailablePlaces</strong>
+                                    </MudField>
+                                </MudCardContent>
+                            </MudCard>
+                            <br/><br/>
+                        }
+                    }
+                }
+                else
+                {
+                    <MudText Typo="Typo.h4">No available exams for booking for now! Try Again later!</MudText>
+                }
+            </div>
+        </div>
+    </MudContainer>
+</MudMainContent>
+</MudLayout>
 
 @code {
     //         
+    bool open = false;
 
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
     private int userID;
     private int proctorID;
     private string userEmail;
     private int ExamID;
     private DateTime? selectedDate = DateTime.Now;
     private string _userRole;
-    private List<DateTime> availableExamDates;
-    
+   
+    private List<ExamSchedule> schedules;
 
-    private async Task ConfirmDate()
+   
+    private async Task OnViewStudentsButtonClick(int examScheduleId)
     {
-        if (selectedDate.HasValue)
+        await LocalStorage.SetItemAsync("ExamScheduleId", examScheduleId);
+        var selectedSchedule = schedules.FirstOrDefault(s => s.ExamScheduleId == examScheduleId);
+        if (selectedSchedule != null)
         {
-    // Fetch the relevant ExamSchedule entry for the selected date
-            var selectedExamSchedule = await StudentService.GetExamScheduleByDateAndProctorId(selectedDate.Value, proctorID);
-            if (selectedExamSchedule != null)
-            {
-                await LocalStorage.SetItemAsync("ExamScheduleId", selectedExamSchedule.ExamScheduleId);
-            }
-            
-            await LocalStorage.SetItemAsync("dateSelected", selectedDate.Value);
+            await LocalStorage.SetItemAsync("dateSelected", selectedSchedule.Date.Value);
             NavManager.NavigateTo("/booking/confirm");
             Snackbar.Add("Date selected successfully!", Severity.Success);
-    // ... (rest of the code remains unchanged)
         }
         else
         {
-            Snackbar.Add("Please select a date before confirming!", Severity.Error);
+            Snackbar.Add("Error: Schedule not found.", Severity.Error);
         }
-    }
-
-    private bool IsDateDisabled(DateTime dt)
-    {
-        if (availableExamDates == null)
-        {
-            return true; // Disable all dates if the list isn't populated yet.
-        }
-    // Allow only the dates from availableExamDates list
-        return !availableExamDates.Contains(dt);
     }
 
     protected override async Task OnInitializedAsync()
     {
         userID = await LocalStorage.GetItemAsync<int>("userID");
+        var student = await StudentService.GetStudentById(userID);
         _userRole = await LocalStorage.GetItemAsync<string>("userRole");
-        proctorID = await LocalStorage.GetItemAsync<int>("StudentsProctorId");
+        proctorID = student.ProctorId;
     // Check if user is a student or if no role is set.
         if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
         {
@@ -131,13 +192,9 @@
             NavManager.NavigateTo("/loginStudent");
             return;
         }
-
-        var student = await StudentService.GetStudentById(userID);
-        userEmail = student?.Email ?? "Email not found";
-        ExamID = await LocalStorage.GetItemAsync<int>("selectedExam");
-
-    // Fetch available exam dates for the student
-        availableExamDates = await StudentService.GetAvailableExamDatesForStudent(userID);
+                userEmail = student?.Email ?? "Email not found";
+                ExamID = await LocalStorage.GetItemAsync<int>("selectedExam");
+                schedules = await StudentService.GetExamScheduleByProctorId(proctorID);
     }
 
 

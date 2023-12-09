@@ -3,14 +3,20 @@
 <PageTitle>PeP</PageTitle>
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
     <MudThemeProvider/>
 <MudDialogProvider/>
-<MudSnackbarProvider/>
+    <MudSnackbarProvider/>
+    <style>
+    body{
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    footer{
+        margin-top: auto;
+    }
+    </style>
 <main>
-
     <article class="content px-4">
         @Body
     </article>

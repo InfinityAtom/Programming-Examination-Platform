@@ -6,55 +6,126 @@
 @inject NavigationManager NavManager;
 
 <PageTitle>Programare la Examen</PageTitle>
-<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
-    <MudText Typo="Typo.h5"><strong>Programming Examination Platform</strong></MudText>
-    <MudSpacer/>
-    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
-    <MudText Typo="Typo.h6">@userEmail</MudText>
-    <MudMenu Icon="@Icons.Material.Filled.Menu">
-        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
-    </MudMenu>
+<MudLayout>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+  <div style="padding: 10px; display: flex; align-items: center;">
+    <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
+  </div>
+  <MudSpacer/>
+  <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
+  <MudText Typo="Typo.h6">@userEmail</MudText>
 </MudAppBar>
-<br/><br/>
-<MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
-    <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
-        <ItemContent>
-            <MudAlert Severity="Severity.Info">Select the exam</MudAlert>
-        </ItemContent>
-    </MudTimelineItem>
-    <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
-        <ItemContent>
-            <MudAlert Severity="Severity.Normal">Select the exam date</MudAlert>
-        </ItemContent>
-    </MudTimelineItem>
-    <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
-        <ItemContent>
-            <MudAlert Severity="Severity.Normal">Confirm</MudAlert>
-        </ItemContent>
-    </MudTimelineItem>
-</MudTimeline>
+<MudDrawer @bind-Open="@open" Elevation="0">
+  <MudNavMenu>
+    <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+    <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
+    <MudDivider Class="my-2"/>
+    <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+    <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
+    <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
+    <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
+    <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.Settings" Expanded="true">
+      <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
+    </MudNavGroup>
+    <MudDivider Class="my-2"/>
+    <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+  </MudNavMenu>
+</MudDrawer>
+    <MudMainContent Class="pt-16 px-16">
+        <MudContainer Class="mt-6">
+            <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+                <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
+                    <ItemContent>
+                        <MudAlert Severity="Severity.Info">Select the exam</MudAlert>
+                    </ItemContent>
+                </MudTimelineItem>
+                <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+                    <ItemContent>
+                        <MudAlert Severity="Severity.Normal">Select the exam date</MudAlert>
+                    </ItemContent>
+                </MudTimelineItem>
+                <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+                    <ItemContent>
+                        <MudAlert Severity="Severity.Normal">Confirm</MudAlert>
+                    </ItemContent>
+                </MudTimelineItem>
+            </MudTimeline>
 
-<br/><br/>
-<MudText Typo="Typo.h2">Select an exam</MudText>
-<br/><br/>
-<MudStack Spacing="15" Row="true">
-    <MudCard>
-        <MudCardMedia Image="images/jexam.png" Height="200" />
-        <MudCardContent>
-            <MudText Typo="Typo.h5">Java Exam</MudText>
-            <br/>
-            <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
-            <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
-            <MudText Typo="Typo.body2">in Year II for the ETTI / CALC / TI profiles</MudText>
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton OnClick="HandleSelecteazaClick"  Href="/booking/selectdate" Variant="Variant.Text" Color="Color.Primary">Select</MudButton>
-        </MudCardActions>
-    </MudCard>
-</MudStack>
+            <br/><br/>
+            <MudText Typo="Typo.h2">Select an exam</MudText>
+            <br/><br/>
+            <MudStack Spacing="15" Row="true">
+                <MudCard>
+                    <MudCardMedia Image="images/jexam.png" Height="200" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">Java Exam</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
+                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+                        <MudText Typo="Typo.body2">in Year II for the ETTI / CALC / TI profiles</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton OnClick="HandleSelecteazaClick"  Href="/booking/selectdate" Variant="Variant.Text" Color="Color.Primary">Select</MudButton>
+                    </MudCardActions>
+                </MudCard>
+                <MudCard>
+                    <MudCardMedia Image="images/cexam.png" Height="200" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">C Exam</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
+                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+                        <MudText Typo="Typo.body2">in Year I for the ETTI profiles</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <br/>
+                        <strong><MudText Typo="Typo.body2">COMING SOON</MudText></strong>
+                    </MudCardActions>
+                </MudCard>
+                <MudCard>
+                    <MudCardMedia Image="images/cppexam.png" Height="200" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">C++ Exam</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
+                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+                        <MudText Typo="Typo.body2">in Year I for the ETTI profiles</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <br/>
+                        <strong><MudText Typo="Typo.body2">COMING SOON</MudText></strong>
+                    </MudCardActions>
+                </MudCard>
+                <MudCard>
+                    <MudCardMedia Image="images/csexam.png" Height="200" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">C# Exam</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
+                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+                        <MudText Typo="Typo.body2">in Year III for the EA/TST profiles</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <br/>
+                        <strong><MudText Typo="Typo.body2">COMING SOON</MudText></strong>
+                    </MudCardActions>
+                </MudCard>
+            </MudStack>
+        </MudContainer>
+    </MudMainContent>
+    
+    
+</MudLayout>
 <br/><br/><br/><br/><br/>
 
 @code {
+    bool open = false;
+
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
     private int userID;
     private string userEmail;
     private string _userRole;

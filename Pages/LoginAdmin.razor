@@ -19,81 +19,109 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
       width: 80%;
       padding: 20px;
 }     
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8); /* White background with 70% opacity */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 1000; /* Ensure it's above other content */
+}
 </style>
-<div class="center">
-    <div class="center">
-    <MudCard>
-        <MudCardMedia Image="images/loginAdminBanner.png" Height="200"/>
-        <MudCardContent>
-            <MudText Typo="Typo.h5">Log In - Management account</MudText>
-            <MudText Typo="Typo.caption">Enter your email and password below to log in to the system!</MudText>
-           <MudTextField Label="Email" @bind-Value="_email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" AdornmentColor="Color.Primary"/>
-                       <MudTextField Label="Password" @bind-Value="_password" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary"/>
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton OnClick="OnLoginButtonClick">Log In</MudButton>
-            <MudNavLink Href="/loginStudent">Or log in as student</MudNavLink>
-        </MudCardActions>
-    </MudCard>
-    </div></div><br/><br/><br/>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+    <div style="padding: 10px; display: flex; align-items: center;">
+        <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
+    </div>
+</MudAppBar>
+<br/><br/><br/><br/><br/><br/><br/>
+<MudStack Spacing="3" Row="true">
+      @if (isLoading)
+      {
+          <div class="loading-overlay">
+              <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+              <MudText Typo="Typo.h5">Please wait while we are preparing your dashboard</MudText>
+          </div>
+      }
+  <MudSpacer/>
+  <MudCard>
+    <MudCardMedia Image="images/loginAdminBanner.png" Height="200"/>
+    <MudCardContent>
+      <MudText Typo="Typo.h5">Log In - Proctor Account</MudText>
+      <MudText Typo="Typo.caption">Enter your email and password below to log in to the system!</MudText>
+      <MudTextField Label="Email" @bind-Value="_email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" AdornmentColor="Color.Primary"/>
+      <MudTextField Label="Password" @bind-Value="_password" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary"/>
+    </MudCardContent>
+    <MudCardActions>
+      <MudButton OnClick="OnLoginButtonClick">Log In</MudButton>
+      <MudNavLink Href="/loginStudent">Or log in as student</MudNavLink>
+    </MudCardActions>
+  </MudCard>
+  <MudSpacer/>
+</MudStack>
+<br/><br/><br/>
+
 @code {
-    private string _email = "";
-    private string _password = "";
-    private string _message = "";  // Variable to hold messages to display
-    private int _alert;
-    
-    
-    
-    async Task HandleLogin()
-    {
-        try
-        {
-            // Increase the command timeout to 60 seconds.
-            //DbContext.Database.SetCommandTimeout(60);
+  private string _email = "";
+  private string _password = "";
+  private string _message = ""; // Variable to hold messages to display
+  private int _alert;
+  private bool isLoading = false;
 
-            var proctor = await DbContext.Proctors
-              .AsNoTracking()
-               .Where(p => p.Email.Equals(_email) && p.Password.Equals(_password))
-                .FirstOrDefaultAsync();
-                
-            if (proctor != null)
-            {
-                await LocalStorage.SetItemAsync("proctorID", proctor.ProctorId);
-                await LocalStorage.SetItemAsync("userRole", "Admin");
-                Console.WriteLine($"Logged in user: {_email} with the ID: {proctor.ProctorId}" );
-                _message = "Successfully logged in! Redirecting...";  // Set the message
-                _alert = 0;
-                NavigationManager.NavigateTo("/ia-admin");
-                
-            }
-            else
-            {
-                _message = "User or password incorrect!";  // Set the message
-                _alert = 1;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-            _message = "An error occurred while trying to log in.";  // Set the message
-            _alert = 1;
-        }
-    }
-    private async Task OnLoginButtonClick()
+  async Task HandleLogin()
+  {
+    try
     {
-        await HandleLogin();  // handle the login first
-        HandleSnackbar();  // then handle the SnackBar
-    }
+      var proctor = await DbContext.Proctors
+        .AsNoTracking()
+        .Where(p => p.Email.Equals(_email) && p.Password.Equals(_password))
+        .FirstOrDefaultAsync();
 
-    private void HandleSnackbar()
-    {
-        if (_alert == 0)
-        {
-            Snackbar.Add(_message, Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add(_message, Severity.Error);
-        }
+      if (proctor != null)
+      {
+        await LocalStorage.SetItemAsync("proctorID", proctor.ProctorId);
+        await LocalStorage.SetItemAsync("userRole", "Admin");
+        Console.WriteLine($"Logged in user: {_email} with the ID: {proctor.ProctorId}");
+        _message = "Successfully logged in! Redirecting..."; // Set the message
+        _alert = 0;
+        NavigationManager.NavigateTo("/ia-admin");
+      }
+      else
+      {
+        _message = "User or password incorrect!"; // Set the message
+        _alert = 1;
+      }
     }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"An error occurred: {ex.Message}");
+      _message = "An error occurred while trying to log in."; // Set the message
+      _alert = 1;
+    }
+  }
+
+  private async Task OnLoginButtonClick()
+  {
+    isLoading = true;
+    await HandleLogin(); // handle the login first
+    HandleSnackbar(); // then handle the SnackBar
+    isLoading = false;
+  }
+
+  private void HandleSnackbar()
+  {
+    if (_alert == 0)
+    {
+      Snackbar.Add(_message, Severity.Success);
+    }
+    else
+    {
+      Snackbar.Add(_message, Severity.Error);
+    }
+  }
+
 }

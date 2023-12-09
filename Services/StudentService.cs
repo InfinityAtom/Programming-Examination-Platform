@@ -96,8 +96,7 @@ END:VCALENDAR";
                    })
             {
                 // Generate ICS content
-                examDate = examDate.AddHours(12);
-                DateTime examEndDate = examDate.AddHours(2); // Assuming 1 hour for exam duration. Adjust as needed.
+                DateTime examEndDate = examDate.AddHours(1); // Assuming 1 hour for exam duration. Adjust as needed.
                 
                 string icsContent = string.Format(ICSContentTemplate,
                     Guid.NewGuid(),
@@ -174,6 +173,88 @@ END:VCALENDAR";
         return result;
         
         
+    }
+    public async System.Threading.Tasks.Task DeleteTestRecords(int testId)
+    {
+        // Find the test with the given TestId
+        var test = await _context.Tests.FindAsync(testId);
+        if (test != null)
+        {
+            // Remove the test and its related test questions from the context
+            _context.Tests.Remove(test);
+            var testQuestions = _context.TestQuestions.Where(tq => tq.TestId == testId);
+            _context.TestQuestions.RemoveRange(testQuestions);
+
+            // Save the changes to the database
+            await _context.SaveChangesAsync();
+        }
+    }
+    public async System.Threading.Tasks.Task DeleteTestQuestionsByTestId(int testId)
+    {
+        var testQuestions = _context.TestQuestions.Where(q => q.TestId == testId);
+        _context.TestQuestions.RemoveRange(testQuestions);
+        await _context.SaveChangesAsync();
+    }
+    public async Task<List<ExamSchedule>> GetExamScheduleByProctorId(int proctorId)
+    {
+        return await _context.ExamSchedules
+            .Where(schedule => schedule.ProctorId == proctorId)
+            .ToListAsync();
+    }
+
+    public async Task<Test> CreateTestWithQuestions(int studentId)
+    {
+        // Create and save a new test
+        var test = new Test
+        {
+            StudentId = studentId,
+            DateTaken = DateTime.Now
+        };
+
+        _context.Tests.Add(test);
+        await _context.SaveChangesAsync();
+
+        // Get 15 random questions from the QuestionBank
+        var randomQuestions = await _context.QuestionBanks
+            .OrderBy(q => Guid.NewGuid())
+            .Take(30)
+            .ToListAsync();
+
+        // Create and save new test questions
+        foreach (var question in randomQuestions)
+        {
+            var testQuestion = new TestQuestion
+            {
+                TestId = test.TestId,
+                QuestionId = question.QuestionId,
+                StudentAnswer = null // Initially null
+            };
+            _context.TestQuestions.Add(testQuestion);
+        }
+
+        await _context.SaveChangesAsync();
+
+        return test;
+    }
+
+    public async Task<TestQuestion> GetNextTestQuestion(int testId, int currentQuestionIndex)
+    {
+        // Assuming TestQuestions are ordered by their ID or another sequential identifier
+        return await _context.TestQuestions
+            .Where(tq => tq.TestId == testId)
+            .OrderBy(tq => tq.TestQuestionId)
+            .Skip(currentQuestionIndex)
+            .FirstOrDefaultAsync();
+    }
+    public async System.Threading.Tasks.Task UpdateStudentAnswer(int testQuestionId, string studentAnswer)
+    {
+        var testQuestion = await _context.TestQuestions.FindAsync(testQuestionId);
+    
+        if (testQuestion != null)
+        {
+            testQuestion.StudentAnswer = studentAnswer;
+            await _context.SaveChangesAsync();
+        }
     }
 
 

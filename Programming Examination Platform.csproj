@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.4.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.10">
@@ -28,6 +29,7 @@
     <Content Remove="Pages\Counter.razor" />
     <Content Remove="Pages\tutorial.razor" />
     <Content Remove="wwwroot\files\selectedExam" />
+    <Content Remove="Pages\Mobile.razor" />
   </ItemGroup>
 
   <ItemGroup>

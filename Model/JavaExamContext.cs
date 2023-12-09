@@ -23,15 +23,21 @@ public partial class JavaExamContext : DbContext
 
     public virtual DbSet<Proctor> Proctors { get; set; }
 
+    public virtual DbSet<QuestionBank> QuestionBanks { get; set; }
+
     public virtual DbSet<Specialization> Specializations { get; set; }
 
     public virtual DbSet<Studenti> Studentis { get; set; }
 
     public virtual DbSet<Task> Tasks { get; set; }
 
+    public virtual DbSet<Test> Tests { get; set; }
+
+    public virtual DbSet<TestQuestion> TestQuestions { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=tcp:licente.database.windows.net,1433;Initial Catalog=db;Persist Security Info=False;User ID=gabi;Password=Parola12;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;");
+        => optionsBuilder.UseSqlServer("Server=tcp:pep2.database.windows.net,1433;Initial Catalog=db;Persist Security Info=False;User ID=gabi;Password=Parola12;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -99,6 +105,36 @@ public partial class JavaExamContext : DbContext
             entity.Property(e => e.FirstName).HasMaxLength(50);
             entity.Property(e => e.LastName).HasMaxLength(50);
             entity.Property(e => e.Password).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<QuestionBank>(entity =>
+        {
+            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8C647BEE70");
+
+            entity.ToTable("QuestionBank");
+
+            entity.Property(e => e.QuestionId)
+                .ValueGeneratedNever()
+                .HasColumnName("QuestionID");
+            entity.Property(e => e.AnswerA)
+                .HasMaxLength(1024)
+                .IsUnicode(false);
+            entity.Property(e => e.AnswerB)
+                .HasMaxLength(1024)
+                .IsUnicode(false);
+            entity.Property(e => e.AnswerC)
+                .HasMaxLength(1024)
+                .IsUnicode(false);
+            entity.Property(e => e.AnswerD)
+                .HasMaxLength(1024)
+                .IsUnicode(false);
+            entity.Property(e => e.CorrectAnswerLetter)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.QuestionText)
+                .HasMaxLength(1024)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<Specialization>(entity =>
@@ -170,6 +206,43 @@ public partial class JavaExamContext : DbContext
                 .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Tasks_Studenti");
+        });
+
+        modelBuilder.Entity<Test>(entity =>
+        {
+            entity.HasKey(e => e.TestId).HasName("PK__Test__8CC3310041D7D969");
+
+            entity.ToTable("Test");
+
+            entity.Property(e => e.TestId).HasColumnName("TestID");
+            entity.Property(e => e.DateTaken).HasColumnType("datetime");
+            entity.Property(e => e.Score).HasDefaultValueSql("((0))");
+            entity.Property(e => e.StudentId).HasColumnName("StudentID");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.Tests)
+                .HasForeignKey(d => d.StudentId)
+                .HasConstraintName("FK__Test__StudentID__44FF419A");
+        });
+
+        modelBuilder.Entity<TestQuestion>(entity =>
+        {
+            entity.HasKey(e => e.TestQuestionId).HasName("PK__TestQues__4C589E693011FCEE");
+
+            entity.Property(e => e.TestQuestionId).HasColumnName("TestQuestionID");
+            entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
+            entity.Property(e => e.StudentAnswer)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.TestId).HasColumnName("TestID");
+
+            entity.HasOne(d => d.Question).WithMany(p => p.TestQuestions)
+                .HasForeignKey(d => d.QuestionId)
+                .HasConstraintName("FK__TestQuest__Quest__2FCF1A8A");
+
+            entity.HasOne(d => d.Test).WithMany(p => p.TestQuestions)
+                .HasForeignKey(d => d.TestId)
+                .HasConstraintName("FK__TestQuest__TestI__46E78A0C");
         });
 
         OnModelCreatingPartial(modelBuilder);

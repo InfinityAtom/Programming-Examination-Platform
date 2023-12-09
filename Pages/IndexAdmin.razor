@@ -7,26 +7,40 @@
 @inject ProctorService ProctorService
 
 <PageTitle>Dashboard Admin</PageTitle>
-<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
-    <MudText Typo="Typo.h5">
-        <strong>PeP Management</strong>
-    </MudText>
-    <MudSpacer/>
-    <MudIconButton Icon="@Icons.Material.Filled.Shield" Color="Color.Inherit"/>
-    <MudText Typo="Typo.h6">@_userEmail</MudText>
-    <MudMenu Icon="@Icons.Material.Filled.Menu">
-        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
-    </MudMenu>
+<MudLayout>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+  <div style="padding: 10px; display: flex; align-items: center;">
+    <img src="images/headerProctor.png" style="max-height: 150px; max-width: 250px;"/>
+  </div>
+  <MudSpacer/>
+  <MudIconButton Icon="@Icons.Material.Filled.Verified" Color="Color.Inherit"/>
+  <MudText Typo="Typo.h6">@_userEmail</MudText>
 </MudAppBar>
+<MudDrawer @bind-Open="@open" Elevation="0" >
+    <MudNavMenu Class="mud-width-full">
+        <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">WebAssembly Platform</MudText>
+        <MudDivider Class="my-2" />
+        <MudNavLink Href="/ia-Admin" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="/view-users" Icon="@Icons.Material.Filled.SupervisedUserCircle">Students</MudNavLink>
+        <MudNavLink Href="/ViewPlannedExams" Icon="@Icons.Material.Filled.DateRange">Planned exams</MudNavLink>
+        <MudNavLink Href="/ExamGrades" Icon="@Icons.Material.Filled.Checklist">Exam results</MudNavLink>
+    
+        <MudDivider Class="my-2"/>
+    <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+<MudMainContent Class="pt-16 px-16">
+  <MudContainer Class="mt-6">
 <br/><br/>
 
     <MudText Typo="Typo.h2">Dashboard Admin</MudText>
     <br/>
     <br/>
-
 <MudText Typo="Typo.h3">Proctor Tools</MudText>
 <br/><br/>
-<MudStack Spacing="15" Row="true">
+<MudStack Spacing="3" Row="true">
     <MudCard>
         <MudCardMedia Image="images/viewUsersBanner.png" Height="200"/>
         <MudCardContent>
@@ -49,6 +63,17 @@
             <MudButton Href="/ViewPlannedExams" Variant="Variant.Text" Color="Color.Primary">Pick</MudButton>
         </MudCardActions>
     </MudCard>
+    <MudCard>
+            <MudCardMedia Image="images/EditResultsBanner.png" Height="200"/>
+            <MudCardContent>
+                <MudText Typo="Typo.h5">Exam Results</MudText>
+                <MudText Typo="Typo.body2">See your students performance in the exam. Edit their grades if necessary.&#8195; &#8195; &#8195;</MudText>
+                <br/>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="/ExamGrades" Variant="Variant.Text" Color="Color.Primary">View</MudButton>
+            </MudCardActions>
+        </MudCard>
 </MudStack>
 <br/><br/><br/>
 
@@ -58,9 +83,17 @@
     backdrop-filter: blur(50px);
   }
 </style>
-
+  </MudContainer>
+</MudMainContent>
+</MudLayout>
 @code {
     //Variables:
+    bool open = false;
+
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
     private int _userID;
     private string _userEmail;
     private string _selectedExam;
@@ -88,6 +121,8 @@
         if (string.IsNullOrEmpty(_userRole) || _userRole == "Student")
         {
             NavManager.NavigateTo("/loginAdmin");
+            await LocalStorage.SetItemAsync("userID", -1);
+            await LocalStorage.SetItemAsync("userRole", String.Empty);
             return;
         }
         

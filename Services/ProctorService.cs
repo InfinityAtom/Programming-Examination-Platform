@@ -18,13 +18,21 @@ public class ProctorService
     return await _context.Proctors.FirstOrDefaultAsync(proctor => proctor.ProctorId == id);
   }
 
+  public async Task<Studenti?> GetStudentById(int id)
+  {
+    return await _context.Studentis.FirstOrDefaultAsync(student => student.StudnetId == id);
+  }
+  
   public async Task<List<Studenti>> GetStudentsByProctorId(int proctorId)
   {
     return await _context.Studentis
       .Where(student => student.ProctorId == proctorId)
       .ToListAsync();
   }
-
+  public async Task<Model.Task> GetTaskByUserId(int studentID)
+  {
+    return await _context.Tasks.FirstOrDefaultAsync(t => t.StudentId == studentID);
+  }
   public async Task<List<ExamSchedule>> GetExamScheduleByProctorId(int proctorId)
   {
     return await _context.ExamSchedules
@@ -88,6 +96,7 @@ public class ProctorService
       
       var details = new StudentExamDetails
       {
+        StudentId = student.StudnetId,
         FirstName = student.FirstName,
         LastName = student.LastName,
         Email = student.Email,
@@ -102,7 +111,36 @@ public class ProctorService
     return detailsList;
   }
 
+  public async Task<bool> UpdateTask(int taskId, string t1e, string t1s, string t2e, string t2s, string t3e, string t3s, string t4e, string t4s, int finalGrade)
+  {
+    var existingTask = await _context.Tasks.FindAsync(taskId);
+    if (existingTask == null)
+    {
+      return false; // or you can handle it differently, such as throwing an exception
+    }
 
+    // Update only the specified fields:
+    existingTask.Task1Explanation = t1e;
+    existingTask.Task1State = t1s;
+    existingTask.Task2Explanation = t2e;
+    existingTask.Task2State = t2s;
+    existingTask.Task3Explanation = t3e;
+    existingTask.Task3State = t3s;
+    existingTask.Task4Explanation = t4e;
+    existingTask.Task4State = t4s;
+    existingTask.FinalGrade = finalGrade;
+
+    try
+    {
+      await _context.SaveChangesAsync();
+      return true;
+    }
+    catch (Exception e)
+    {
+      // Log the exception or handle it appropriately
+      return false;
+    }
+  }
 
 
 

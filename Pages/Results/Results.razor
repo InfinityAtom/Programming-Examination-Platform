@@ -8,18 +8,34 @@
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject StudentService StudentService
 <PageTitle>Results</PageTitle>
-
-    <MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
-        <MudText Typo="Typo.h5">
-            <strong>Programming Examination Platform</strong>
-        </MudText>
-        <MudSpacer/>
-        <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
-        <MudText Typo="Typo.h6">@userEmail</MudText>
-        <MudMenu Icon="@Icons.Material.Filled.Menu">
-            <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
-        </MudMenu>
-    </MudAppBar>
+<MudLayout>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+  <div style="padding: 10px; display: flex; align-items: center;">
+    <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
+  </div>
+  <MudSpacer/>
+  <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
+  <MudText Typo="Typo.h6">@userEmail</MudText>
+</MudAppBar>
+<MudDrawer @bind-Open="@open" Elevation="0">
+  <MudNavMenu>
+    <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+    <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
+    <MudDivider Class="my-2"/>
+    <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+    <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
+    <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
+    <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
+    <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.Settings" Expanded="true">
+      <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
+    </MudNavGroup>
+    <MudDivider Class="my-2"/>
+    <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+  </MudNavMenu>
+</MudDrawer>
+<MudMainContent Class="pt-16 px-16">
+  <MudContainer Class="mt-6">
     <br/>
 <br/>
 @if (finalGrade != "No Grade")
@@ -282,9 +298,19 @@
         <MudText Typo="Typo.h6">It looks like you already have an exam booked on: <strong>@selectedDate</strong>.<br/>Take your exam, and come back on this page after the date mentioned!</MudText>
     }
     <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                                                                                                   
+                                                                                                
 }
-
+   </MudContainer>
+   </MudMainContent>
+    </MudLayout>
 @code {
+    bool open = false;
+
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
     private Studenti? student;
     private Booking? booking;
     private Model.Task? grade;

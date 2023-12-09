@@ -1,0 +1,476 @@
+﻿@page "/editGrades"
+@layout MainLayoutAdmin
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@inject NavigationManager NavManager;
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ProctorService ProctorService
+@inject ISnackbar Snackbar;
+<MudLayout>
+  <MudScrollToTop>
+      <MudFab Color="Color.Primary" Icon="@Icons.Material.Filled.KeyboardArrowUp" />
+  </MudScrollToTop>
+  <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+    <div style="padding: 10px; display: flex; align-items: center;">
+      <img src="images/headerProctor.png" style="max-height: 150px; max-width: 250px;"/>
+    </div>
+    <MudSpacer/>
+    <MudIconButton Icon="@Icons.Material.Filled.Verified" Color="Color.Inherit"/>
+    <MudText Typo="Typo.h6">@_userEmail</MudText>
+
+  </MudAppBar>
+  <MudDrawer @bind-Open="@open" Elevation="0">
+    <MudNavMenu Class="mud-width-full">
+      <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+      <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">WebAssembly Platform</MudText>
+      <MudDivider Class="my-2"/>
+      <MudNavLink Href="/ia-Admin" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+      <MudNavLink Href="/view-users" Icon="@Icons.Material.Filled.SupervisedUserCircle">Students</MudNavLink>
+      <MudNavLink Href="/ViewPlannedExams" Icon="@Icons.Material.Filled.DateRange">Planned exams</MudNavLink>
+      <MudNavLink Href="/ExamGrades" Icon="@Icons.Material.Filled.Checklist">Exam results</MudNavLink>
+
+      <MudDivider Class="my-2"/>
+      <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+    </MudNavMenu>
+  </MudDrawer>
+  <MudMainContent Class="pt-16 px-16">
+    <MudContainer Class="mt-6">
+      <style>
+              .center
+              {
+                    margin: auto;
+                    width: 80%;
+                    padding: 20px;
+              }     
+              .loading-overlay {
+                  position: fixed;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  background-color: rgba(255, 255, 255, 1); /* White background with 70% opacity */
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  flex-direction: column;
+                  z-index: 1000; /* Ensure it's above other content */
+              }
+    </style>
+      @if (isLoading)
+      {
+        <div class="loading-overlay">
+          <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true"/>
+          <MudText Typo="Typo.h5">Loading, please wait...</MudText>
+        </div>
+      }
+      else
+      {
+        <MudStack Spacing="15" Row="true">
+          <MudSpacer/>
+          <MudCard Elevation="5">
+            <MudCardHeader>
+              <MudText Typo="Typo.h4">
+                <strong>@(student.FirstName + " " + student.LastName)</strong>
+              </MudText>
+              <MudSpacer/>
+              <MudIconButton Icon="@Icons.Material.Filled.VerifiedUser"/>
+            </MudCardHeader>
+            <MudCardContent>
+              <MudField Label="Email: " Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@student.Email</MudField>
+              <MudField Label="Faculty" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.School">@student.Faculty</MudField>
+              <MudField Label="Group:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Custom.FileFormats.FileCode">@student.Groupa&#8195; &#8195; &#8195; &#8195; &#8195; &#8195; &#8195; &#8195;</MudField>
+            </MudCardContent>
+          </MudCard >
+          <MudSpacer/>
+          <MudCard Elevation="5">
+            <MudCardHeader>
+              <MudText Typo="Typo.h4">
+                <strong>Edit Final Grade</strong>
+              </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+              <MudNumericField @bind-Value="finalGrade" Label="Final Grade" Variant="Variant.Outlined" Step="1" Min="1" Max="10"/>
+            </MudCardContent>
+
+          </MudCard>
+          <MudSpacer/>
+          <MudCard Elevation="5">
+            <MudCardHeader>
+              <MudText Typo="Typo.h4">
+                <strong>Actions</strong>
+              </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+              <MudButton OnClick="HandleConfirmClick" Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save">Save Everything</MudButton>
+              <br/><br/>
+              <MudButton Href="/examgrades" Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close">Cancel &#8195; &#8195; &#8195; &#8195;</MudButton>
+            </MudCardContent>
+          </MudCard>
+          <MudSpacer/>
+        </MudStack>
+        <MudStack Spacing="15">
+          <MudSpacer/>
+          <MudCard Elevation="5">
+            <MudCardHeader>
+              <MudText Typo="Typo.h4">
+                <strong>Task 1</strong>
+              </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+              <MudText Typo="Typo.h6">@t1c</MudText>
+              <br/>
+              @if (wrongvalueornull1 == false)
+              {
+                <MudText>Correctly/Incorrectly Solved:</MudText>
+                <MudSwitch Size="Size.Large" @bind-Checked="@_changed1" ThumbIcon="@(_changed1 == true ? Icons.Material.Filled.Done : Icons.Material.Filled.Close)" ThumbIconColor="@(_changed1 == true ? Color.Success : Color.Error)"/>
+              }
+              else
+              {
+                <MudText>Correctly/Incorrectly Solved:</MudText>
+                <MudSwitch Size="Size.Large" @bind-Checked="@_changed1" ThumbIcon="@(_changed1 == true ? Icons.Material.Filled.Done : Icons.Material.Filled.Close)" ThumbIconColor="@(_changed1 == true ? Color.Success : Color.Error)" Disabled="true"/>
+              }
+              <br/>
+              <MudTextField T="string" @bind-Value="t1modifiedexpl" Label="Feedback for task 1" Variant="Variant.Outlined" Text="@t1e" Lines="3" HelperText="You can update this feedback"/>
+            </MudCardContent>
+          </MudCard>
+          <MudSpacer/>
+          <MudCard Elevation="5">
+            <MudCardHeader>
+              <MudText Typo="Typo.h4">
+                <strong>Task 2</strong>
+              </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+              <MudText Typo="Typo.h6">@t2c</MudText>
+              <br/>
+              @if (wrongvalueornull2 == false)
+              {
+                <MudText>Correctly/Incorrectly Solved:</MudText>
+                <MudSwitch Size="Size.Large" @bind-Checked="@_changed2" ThumbIcon="@(_changed2 == true ? Icons.Material.Filled.Done : Icons.Material.Filled.Close)" ThumbIconColor="@(_changed2 == true ? Color.Success : Color.Error)"/>
+              }
+              else
+              {
+                <MudText>Correctly/Incorrectly Solved:</MudText>
+                <MudSwitch Size="Size.Large" @bind-Checked="@_changed2" ThumbIcon="@(_changed2 == true ? Icons.Material.Filled.Done : Icons.Material.Filled.Close)" ThumbIconColor="@(_changed2 == true ? Color.Success : Color.Error)" Disabled="true"/>
+              }
+              <br/>
+              <MudTextField T="string" @bind-Value="t2modifiedexpl" Label="Feedback for task 2" Variant="Variant.Outlined" Text="@t2e" Lines="3" HelperText="You can update this feedback"/>
+            </MudCardContent>
+          </MudCard>
+          <MudSpacer/>
+          <MudCard Elevation="5">
+            <MudCardHeader>
+              <MudText Typo="Typo.h4">
+                <strong>Task 3</strong>
+              </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+              <MudText Typo="Typo.h6">@t3c</MudText>
+              <br/>
+              @if (wrongvalueornull3 == false)
+              {
+                <MudText>Correctly/Incorrectly Solved:</MudText>
+                <MudSwitch Size="Size.Large" @bind-Checked="@_changed3" ThumbIcon="@(_changed3 == true ? Icons.Material.Filled.Done : Icons.Material.Filled.Close)" ThumbIconColor="@(_changed3 == true ? Color.Success : Color.Error)"/>
+              }
+              else
+              {
+                <MudText>Correctly/Incorrectly Solved:</MudText>
+                <MudSwitch Size="Size.Large" @bind-Checked="@_changed3" ThumbIcon="@(_changed3 == true ? Icons.Material.Filled.Done : Icons.Material.Filled.Close)" ThumbIconColor="@(_changed3 == true ? Color.Success : Color.Error)" Disabled="true"/>
+              }
+              <br/>
+              <MudTextField T="string" @bind-Value="t3modifiedexpl" Label="Feedback for task 3" Variant="Variant.Outlined" Text="@t3e" Lines="3" HelperText="You can update this feedback"/>
+            </MudCardContent>
+          </MudCard>
+          <MudSpacer/>
+          <MudCard Elevation="5">
+            <MudCardHeader>
+              <MudText Typo="Typo.h4">
+                <strong>Task 4</strong>
+              </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+              <MudText Typo="Typo.h6">@t4c</MudText>
+              <br/>
+              @if (wrongvalueornull4 == false)
+              {
+                <MudText>Correctly/Incorrectly Solved:</MudText>
+                <MudSwitch Size="Size.Large" @bind-Checked="@_changed4" ThumbIcon="@(_changed4 == true ? Icons.Material.Filled.Done : Icons.Material.Filled.Close)" ThumbIconColor="@(_changed4 == true ? Color.Success : Color.Error)"/>
+              }
+              else
+              {
+                <MudText>Correctly/Incorrectly Solved:</MudText>
+                <MudSwitch Size="Size.Large" @bind-Checked="@_changed4" ThumbIcon="@(_changed4 == true ? Icons.Material.Filled.Done : Icons.Material.Filled.Close)" ThumbIconColor="@(_changed4 == true ? Color.Success : Color.Error)" Disabled="true"/>
+              }
+              <br/>
+              <MudTextField T="string" @bind-Value="t4modifiedexpl" Label="Feedback for task 4" Variant="Variant.Outlined" Text="@t4e" Lines="3" HelperText="You can update this feedback"/>
+            </MudCardContent>
+          </MudCard>
+          <MudSpacer/>
+        </MudStack>
+
+        <br/>
+
+
+        <br/>
+      }
+    </MudContainer>
+  </MudMainContent>
+</MudLayout>
+
+@code {
+  //Variables:
+  bool open = false;
+
+  void ToggleDrawer()
+  {
+    open = !open;
+  }
+
+  private int _userID;
+  private string _userEmail;
+    private const string _localStorageUserId = "proctorID";
+    private const string _navigationToLogin = "/";
+    private const string _emailError = "Email not found";
+  private int studentId;
+  private string _userRole;
+  private string specializationName;
+  private int count = 1;
+  private Model.Task? tasksList;
+  public int finalGrade;
+  private string t1c;
+  private string t1e;
+  private string t1modifiedexpl;
+  private string t1modifiedstate;
+  private string t1s;
+  private string t2c;
+  private string t2e;
+  private string t2modifiedexpl;
+  private string t2modifiedstate;
+  private string t2s;
+  private string t3c;
+  private string t3e;
+  private string t3s;
+  private string t3modifiedexpl;
+  private string t3modifiedstate;
+  private string t4c;
+  private string t4e;
+  private string t4s;
+  private string t4modifiedexpl;
+  private string t4modifiedstate;
+  private bool _changed1 = false;
+  private bool wrongvalueornull1;
+  private bool _changed2 = false;
+  private bool wrongvalueornull2;
+  private bool _changed3 = false;
+  private bool wrongvalueornull3;
+  private bool _changed4 = false;
+  private bool wrongvalueornull4;
+  private bool isLoading = false;
+  private Studenti student;
+
+  protected override async Task OnInitializedAsync()
+  {
+    isLoading = true;
+    try
+    {
+      _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+
+  // Check if user is a student or if no role is set.
+      if (string.IsNullOrEmpty(_userRole) || _userRole == "Student")
+      {
+        NavManager.NavigateTo("/loginAdmin");
+        return;
+      }
+
+      _userID = await LocalStorage.GetItemAsync<int>(_localStorageUserId);
+      if (_userID == -1) // or another value that represents "no ID"
+      {
+        NavManager.NavigateTo("/loginAdmin");
+        return;
+      }
+      var proctor = await ProctorService.GetProctorById(_userID);
+      _userEmail = proctor?.Email ?? _emailError;
+      studentId = await LocalStorage.GetItemAsync<int>("studentsGradeSelected");
+      student = await ProctorService.GetStudentById(studentId);
+      tasksList = await ProctorService.GetTaskByUserId(studentId);
+      if (tasksList != null)
+      {
+        t1c = tasksList.Task1Content;
+        t1e = tasksList.Task1Explanation;
+        t1s = tasksList.Task1State;
+        t2c = tasksList.Task2Content;
+        t2e = tasksList.Task2Explanation;
+        t2s = tasksList.Task2State;
+        t3c = tasksList.Task3Content;
+        t3e = tasksList.Task3Explanation;
+        t3s = tasksList.Task3State;
+        t4c = tasksList.Task4Content;
+        t4e = tasksList.Task4Explanation;
+        t4s = tasksList.Task4State;
+        finalGrade = Convert.ToInt32(tasksList.FinalGrade);
+      }
+      else
+      {
+        t1c = "-";
+        t1e = "-";
+        t1s = "-";
+        t2c = "-";
+        t2e = "-";
+        t2s = "-";
+        t3c = "-";
+        t3e = "-";
+        t3s = "-";
+        t4c = "-";
+        t4e = "-";
+        t4s = "-";
+        finalGrade = 0;
+      }
+      if (t1s == "Correctly Solved")
+      {
+        _changed1 = true;
+        wrongvalueornull1 = false;
+      }
+      else if (t1s == "Incorrectly Solved")
+      {
+        _changed1 = false;
+        wrongvalueornull1 = false;
+      }
+      else
+      {
+        _changed1 = false;
+        wrongvalueornull1 = true;
+      }
+
+      if (t2s == "Correctly Solved")
+      {
+        _changed2 = true;
+        wrongvalueornull2 = false;
+      }
+      else if (t2s == "Incorrectly Solved")
+      {
+        _changed2 = false;
+        wrongvalueornull2 = false;
+      }
+      else
+      {
+        _changed2 = false;
+        wrongvalueornull2 = true;
+      }
+
+      if (t3s == "Correctly Solved")
+      {
+        _changed3 = true;
+        wrongvalueornull3 = false;
+      }
+      else if (t3s == "Incorrectly Solved")
+      {
+        _changed3 = false;
+        wrongvalueornull3 = false;
+      }
+      else
+      {
+        _changed3 = false;
+        wrongvalueornull3 = true;
+      }
+
+      if (t4s == "Correctly Solved")
+      {
+        _changed4 = true;
+        wrongvalueornull4 = false;
+      }
+      else if (t4s == "Incorrectly Solved")
+      {
+        _changed4 = false;
+        wrongvalueornull4 = false;
+      }
+      else
+      {
+        _changed4 = false;
+        wrongvalueornull4 = true;
+      }
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine(ex);
+    }
+    finally
+    {
+      isLoading = false;
+    }
+  }
+
+  private async Task OnLogoutButtonClick()
+  {
+    await LocalStorage.SetItemAsync(_localStorageUserId, -1);
+    NavManager.NavigateTo(_navigationToLogin);
+  }
+
+  private async Task HandleConfirmClick()
+  {
+    if (_changed1 == true)
+    {
+      t1modifiedstate = "Correctly Solved";
+    }
+    else
+    {
+      t1modifiedstate = "Incorrectly Solved";
+    }
+    if (_changed2 == true)
+    {
+      t2modifiedstate = "Correctly Solved";
+    }
+    else
+    {
+      t2modifiedstate = "Incorrectly Solved";
+    }
+    if (_changed3 == true)
+    {
+      t3modifiedstate = "Correctly Solved";
+    }
+    else
+    {
+      t3modifiedstate = "Incorrectly Solved";
+    }
+    if (_changed4 == true)
+    {
+      t4modifiedstate = "Correctly Solved";
+    }
+    else
+    {
+      t4modifiedstate = "Incorrectly Solved";
+    }
+    if (t1modifiedexpl == null)
+    {
+      t1modifiedexpl = t1e;
+    }
+    if (t2modifiedexpl == null)
+    {
+      t2modifiedexpl = t2e;
+    }
+    if (t3modifiedexpl == null)
+    {
+      t3modifiedexpl = t3e;
+    }
+    if (t4modifiedexpl == null)
+    {
+      t4modifiedexpl = t4e;
+    }
+  // Try updating the schedule
+    bool success = await ProctorService.UpdateTask(tasksList.Id, t1modifiedexpl,t1modifiedstate, t2modifiedexpl, t2modifiedstate, t3modifiedexpl, t3modifiedstate, t4modifiedexpl, t4modifiedstate, finalGrade);
+    
+    if (success)
+    {
+      Snackbar.Add("Task updated successfully!", Severity.Success);
+      NavManager.NavigateTo("/examgrades");
+    }
+    else
+    {
+      Snackbar.Add("Failed to update the task information!", Severity.Error);
+    }
+  }
+  
+  
+}

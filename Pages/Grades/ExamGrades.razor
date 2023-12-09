@@ -7,21 +7,35 @@
 @inject IDialogService DialogService
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject ProctorService ProctorService
-<PageTitle>Dashboard Admin</PageTitle>
+<PageTitle>Exam Results View</PageTitle>
+  <MudLayout>
+    <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+      <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+      <div style="padding: 10px; display: flex; align-items: center;">
+        <img src="images/headerProctor.png" style="max-height: 150px; max-width: 250px;"/>
+      </div>
+      <MudSpacer/>
+      <MudIconButton Icon="@Icons.Material.Filled.Verified" Color="Color.Inherit"/>
+      <MudText Typo="Typo.h6">@_userEmail</MudText>
+    </MudAppBar>
+    <MudDrawer @bind-Open="@open" Elevation="0">
+      <MudNavMenu Class="mud-width-full">
+        <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">WebAssembly Platform</MudText>
+        <MudDivider Class="my-2"/>
+        <MudNavLink Href="/ia-Admin" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="/view-users" Icon="@Icons.Material.Filled.SupervisedUserCircle">Students</MudNavLink>
+        <MudNavLink Href="/ViewPlannedExams" Icon="@Icons.Material.Filled.DateRange">Planned exams</MudNavLink>
+        <MudNavLink Href="/ExamGrades" Icon="@Icons.Material.Filled.Checklist">Exam results</MudNavLink>
 
-<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
-  <MudText Typo="Typo.h5">
-    <strong>PeP Management</strong>
-  </MudText>
-  <MudSpacer/>
-  <MudIconButton Icon="@Icons.Material.Filled.Shield" Color="Color.Inherit"/>
-  <MudText Typo="Typo.h6">@_userEmail</MudText>
-  <MudMenu Icon="@Icons.Material.Filled.Menu">
-    <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
-  </MudMenu>
-</MudAppBar>
-<br/><br/>
-<style>
+        <MudDivider Class="my-2"/>
+        <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+      </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent Class="pt-16 px-16">
+      <MudContainer Class="mt-6">
+        <br/><br/>
+        <style>
 .center
 {
       margin: auto;
@@ -29,49 +43,73 @@
       padding: 20px;
 }     
 </style>
-<div class="center">
-  <div class="center">
- <MudStack Spacing="15" Row="false">
-     @if (studentExamDetailsList != null && studentExamDetailsList.Count > 0)
-     {
-         @foreach (var details in studentExamDetailsList)
-         {
-             <MudCard Elevation="5">
-                 <MudCardHeader>
-                     <CardHeaderContent>
-                         <MudText Typo="Typo.h5">
-                             <strong>@details.FirstName @details.LastName</strong>
-                         </MudText>
-                     </CardHeaderContent>
-                     <CardHeaderActions>
-                         <MudIconButton Icon="@Icons.Material.Filled.Beenhere" Size="Size.Large"/>
-                     </CardHeaderActions>
-                 </MudCardHeader>
-                 <MudCardContent>
-                     <MudField Label="Email: " Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@details.Email</MudField>
-                     <MudField Label="Exam:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Custom.FileFormats.FileCode">@details.ExamName</MudField>
-                     <MudField Label="Date:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CalendarMonth">@details.BookingDate.ToShortDateString()</MudField>
-                     <MudField Label="Final Grade:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.DoneAll">@details.FinalGrade</MudField>
-                     <MudField Label="Status:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Stars">
-                         <strong>@details.ExamStatus</strong>
-                     </MudField>
-                 </MudCardContent>
-                 <MudCardActions>
-                     <!-- You can add more actions/buttons here if needed -->
-                 </MudCardActions>
-             </MudCard>
-         }
-     }
-     else
-     {
-         <MudText Typo="Typo.h5">No exam details found.</MudText>
-     }
- </MudStack>
-  </div>
-</div>
-
-
+        <MudText Typo="Typo.h3" Align="Align.Center">Exam Results</MudText>
+        <div class="center">
+          <div class="center">
+            <MudStack Spacing="15" Row="false">
+              @if (studentExamDetailsList != null && studentExamDetailsList.Count > 0)
+              {
+                @foreach (var details in studentExamDetailsList)
+                {
+                  <MudCard Elevation="5">
+                    <MudCardHeader>
+                      <CardHeaderContent>
+                        <MudText Typo="Typo.h5">
+                          <strong>@details.LastName @details.FirstName</strong>
+                        </MudText>
+                      </CardHeaderContent>
+                      <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Beenhere" Size="Size.Large"/>
+                      </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                      <MudField Label="Email: " Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@details.Email</MudField>
+                      <MudField Label="Exam:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Custom.FileFormats.FileCode">@details.ExamName</MudField>
+                      <MudField Label="Date:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CalendarMonth">@details.BookingDate.ToShortDateString()</MudField>
+                      <MudField Label="Final Grade:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.DoneAll">@details.FinalGrade</MudField>
+                      @if (details.ExamStatus == "Succeeded")
+                      {
+                        <MudField Label="Status:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CheckCircle" AdornmentColor="Color.Success">
+                          <MudText Color="Color.Success"> <strong>@details.ExamStatus</strong> </MudText>
+                        </MudField>
+                      }
+                      else if (details.ExamStatus == "Failed")
+                      {
+                        <MudField Label="Status:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Error" AdornmentColor="Color.Error">
+                          <MudText Color="Color.Error"> <strong>@details.ExamStatus</strong> </MudText>
+                        </MudField>
+                      }
+                      else
+                      {
+                        <MudField Label="Status:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Stars">
+                          <MudText Color="Color.Primary"> <strong>@details.ExamStatus</strong> </MudText>
+                        </MudField>
+                      }
+                    </MudCardContent>
+                    <MudCardActions>
+                      <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Filled.EditNote" @onclick="() => OnEditButtonClick(details.StudentId)">Edit student's exam</MudButton>
+                    </MudCardActions>
+                  </MudCard>
+                }
+              }
+              else
+              {
+                <MudText Typo="Typo.h5">No exam details found.</MudText>
+              }
+            </MudStack>
+          </div>
+        </div>
+      </MudContainer>
+    </MudMainContent>
+  </MudLayout>
 @code {
+  //Variables:
+  bool open = false;
+
+  void ToggleDrawer()
+  {
+    open = !open;
+  }
   private int _userID;
   private string _userEmail;
     private const string _localStorageUserId = "proctorID";
@@ -82,7 +120,14 @@
   private int count = 1;
   private List<Studenti> students = new List<Studenti>();
   private List<StudentExamDetails> studentExamDetailsList = new List<StudentExamDetails>();
-
+  
+  
+  private async Task OnEditButtonClick(int studentId)
+  {
+    await LocalStorage.SetItemAsync("studentsGradeSelected", studentId);
+    NavManager.NavigateTo("/editgrades");
+  }
+  
   protected override async Task OnInitializedAsync()
   {
     _userRole = await LocalStorage.GetItemAsync<string>("userRole");

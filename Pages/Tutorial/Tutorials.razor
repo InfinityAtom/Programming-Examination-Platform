@@ -4,88 +4,152 @@
 @inject StudentService StudentService
 @inject NavigationManager NavManager;
 <PageTitle>Tutorialele Examenelor</PageTitle>
-<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
-    <MudText Typo="Typo.h5"><strong>Programming Examination Platform</strong></MudText>
+<MudLayout>
+  <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+    <div style="padding: 10px; display: flex; align-items: center;">
+      <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
+    </div>
     <MudSpacer/>
-    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
+    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
     <MudText Typo="Typo.h6">@userEmail</MudText>
-    <MudMenu Icon="@Icons.Material.Filled.Menu">
-        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
-    </MudMenu>
-</MudAppBar>
-<br/><br/>
-<MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
-    <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
-        <ItemContent>
+  </MudAppBar>
+  <MudDrawer @bind-Open="@open" Elevation="0">
+    <MudNavMenu>
+      <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+      <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
+      <MudDivider Class="my-2"/>
+      <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+      <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
+      <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
+      <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
+      <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.Settings" Expanded="true">
+        <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
+      </MudNavGroup>
+      <MudDivider Class="my-2"/>
+      <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+    </MudNavMenu>
+  </MudDrawer>
+  <MudMainContent Class="pt-16 px-16">
+    <MudContainer Class="mt-6">
+      <br/><br/>
+      <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+        <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
+          <ItemContent>
             <MudAlert Severity="Severity.Info">Select an exam</MudAlert>
-        </ItemContent>
-    </MudTimelineItem>
-    <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
-        <ItemContent>
+          </ItemContent>
+        </MudTimelineItem>
+        <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+          <ItemContent>
             <MudAlert Severity="Severity.Normal">See the tutorial</MudAlert>
-        </ItemContent>
-    </MudTimelineItem>
+          </ItemContent>
+        </MudTimelineItem>
 
-</MudTimeline>
-<br/><br/>
-<MudText Typo="Typo.h2">Exam tutorials</MudText>
-<br/><br/>
-<MudStack Spacing="15" Row="true">
-    <MudCard>
-        <MudCardMedia Image="images/jexam.png" Height="200" />
-        <MudCardContent>
+      </MudTimeline>
+      <br/><br/>
+      <MudText Typo="Typo.h2">Exam tutorials</MudText>
+      <br/><br/>
+      <MudStack Spacing="15" Row="true">
+        <MudCard>
+          <MudCardMedia Image="images/jexam.png" Height="200"/>
+          <MudCardContent>
             <MudText Typo="Typo.h5">Java Exam</MudText>
             <br/>
             <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
             <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
             <MudText Typo="Typo.body2">in Year II for the ETTI / CALC / TI profiles</MudText>
-        </MudCardContent>
-        <MudCardActions>
+          </MudCardContent>
+          <MudCardActions>
             <MudButton Href="/Tutorials/JavaExam" Variant="Variant.Text" Color="Color.Primary">Select the exam</MudButton>
-        </MudCardActions>
-    </MudCard>
-    <MudSpacer/>
-    <MudPaper Width="250px" Class="d-inline-flex py-3" Elevation="4">
-        <MudNavMenu Class="mud-width-full">
-            <MudText Typo="Typo.h6" Class="px-4">Exam tutorials</MudText>
-            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Quick navigation</MudText>
-            <MudDivider Class="my-2" />
-            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-            <MudNavGroup Title="Exam tutorials"  Icon="@Icons.Material.Filled.Book" IconColor="Color.Success" Expanded="true">
-                <MudNavLink Href="/Tutorials/JavaExam" Icon="@Icons.Material.Filled.Settings">JavaExam</MudNavLink>
-            </MudNavGroup>
-        </MudNavMenu>
-    </MudPaper>
-</MudStack>
-<br/><br/><br/><br/><br/>
+          </MudCardActions>
+        </MudCard>
+        <MudCard>
+          <MudCardMedia Image="images/cexam.png" Height="200"/>
+          <MudCardContent>
+            <MudText Typo="Typo.h5">C Exam</MudText>
+            <br/>
+            <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
+            <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+            <MudText Typo="Typo.body2">in Year I for the ETTI profiles</MudText>
+          </MudCardContent>
+          <MudCardActions>
+            <strong>
+              <MudText Typo="Typo.body2">COMING SOON</MudText>
+            </strong>
+          </MudCardActions>
+        </MudCard>
+        <MudCard>
+          <MudCardMedia Image="images/cppexam.png" Height="200"/>
+          <MudCardContent>
+            <MudText Typo="Typo.h5">C++ Exam</MudText>
+            <br/>
+            <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
+            <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+            <MudText Typo="Typo.body2">in Year I for the ETTI profiles</MudText>
+          </MudCardContent>
+          <MudCardActions>
+            <strong>
+              <MudText Typo="Typo.body2">COMING SOON</MudText>
+            </strong>
+          </MudCardActions>
+        </MudCard>
+        <MudCard>
+          <MudCardMedia Image="images/csexam.png" Height="200"/>
+          <MudCardContent>
+            <MudText Typo="Typo.h5">C# Exam</MudText>
+            <br/>
+            <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
+            <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+            <MudText Typo="Typo.body2">in Year III for the EA/TST profiles</MudText>
+          </MudCardContent>
+          <MudCardActions>
+            <strong>
+              <MudText Typo="Typo.body2">COMING SOON</MudText>
+            </strong>
+          </MudCardActions>
+        </MudCard>
+        <MudSpacer/>
+      </MudStack>
+      <br/><br/><br/><br/><br/>
+    </MudContainer>
+  </MudMainContent>
+</MudLayout>
+
 @code {
-    private int userID;
-    private string userEmail;
-    private string _userRole;
-    protected override async Task OnInitializedAsync()
+  bool open = false;
+
+  void ToggleDrawer()
+  {
+    open = !open;
+  }
+  private int userID;
+  private string userEmail;
+  private string _userRole;
+
+  protected override async Task OnInitializedAsync()
+  {
+    userID = await LocalStorage.GetItemAsync<int>("userID");
+    _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+
+  // Check if user is a student or if no role is set.
+    if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
     {
-        userID = await LocalStorage.GetItemAsync<int>("userID");
-        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
-        
-    // Check if user is a student or if no role is set.
-        if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
-        {
-            NavManager.NavigateTo("/loginStudent");
-            return;
-        }
-        if (userID == -1) // or another value that represents "no ID"
-        {  
-            NavManager.NavigateTo("/loginStudent");
-            return;
-        }
-        var student = await StudentService.GetStudentById(userID);
-        userEmail = student?.Email ?? "Email not found";
+      NavManager.NavigateTo("/loginStudent");
+      return;
     }
-    
-    private async Task OnLogoutButtonClick()
+    if (userID == -1) // or another value that represents "no ID"
     {
-        await LocalStorage.SetItemAsync("userID", -1);
-        NavManager.NavigateTo("/loginStudent");
+      NavManager.NavigateTo("/loginStudent");
+      return;
     }
+    var student = await StudentService.GetStudentById(userID);
+    userEmail = student?.Email ?? "Email not found";
+  }
+
+  private async Task OnLogoutButtonClick()
+  {
+    await LocalStorage.SetItemAsync("userID", -1);
+    NavManager.NavigateTo("/loginStudent");
+  }
 
 }

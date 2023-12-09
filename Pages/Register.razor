@@ -20,9 +20,35 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
       width: 80%;
       padding: 20px;
 }     
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8); /* White background with 70% opacity */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 1000; /* Ensure it's above other content */
+    }
 </style>
-<div class="center">
-    <div class="center">
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+    <div style="padding: 10px; display: flex; align-items: center;">
+        <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
+    </div>
+</MudAppBar>
+<br/><br/><br/><br/><br/><br/><br/>
+<MudStack Spacing="3" Row="true">
+     @if (isLoading)
+        {
+            <div class="loading-overlay">
+                <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                <MudText Typo="Typo.h5">Please wait while we are creating your new account...</MudText>
+            </div>
+        }
+    <MudSpacer/>
     <MudCard>
         <MudCardMedia Image="images/registerBanner.png" Height="200"/>
         <MudCardContent>
@@ -35,14 +61,14 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
             <MudTextField T="string" Label="First name" HelperText="First name" @bind-Value="@Prenumele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
             <MudTextField T="string" Label="Faculty" @bind-Value="@Facultatea" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.School" AdornmentColor="Color.Primary"/>
             <MudAutocomplete T="Specialization" Label="Specialization" @bind-Value="selectedSpecialization" Items="specializations" ToStringFunc="@(x => x.SpecializationName)" SearchFunc="@SearchSpecializations" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Book" AdornmentColor="Color.Primary"></MudAutocomplete>
-                        <MudAutocomplete T="Proctor" 
-                                          Label="Proctor Email" 
-                                          @bind-Value="selectedProctor" 
-                                          Items="proctors" 
-                                          ToStringFunc="@(x => x.Email)" 
-                                          SearchFunc="@SearchProctorsByEmail"
-                                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.SupervisedUserCircle" AdornmentColor="Color.Primary">
-                         </MudAutocomplete>
+            <MudAutocomplete T="Proctor"
+                             Label="Proctor Email"
+                             @bind-Value="selectedProctor"
+                             Items="proctors"
+                             ToStringFunc="@(x => x.Email)"
+                             SearchFunc="@SearchProctorsByEmail"
+                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.SupervisedUserCircle" AdornmentColor="Color.Primary">
+            </MudAutocomplete>
             <MudTextField T="string" Label="Year" HelperText="" @bind-Value="@Anul" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled._2k" AdornmentColor="Color.Primary"/>
             <MudTextField T="string" Label="Group" HelperText="" @bind-Value="@Grupa" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleAlt" AdornmentColor="Color.Primary"/>
         </MudCardContent>
@@ -53,7 +79,9 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
             <MudNavLink Href="/loginAdmin">Or log in as proctor</MudNavLink>
         </MudCardActions>
     </MudCard>
-</div></div><br/><br/><br/>
+    <MudSpacer/>
+</MudStack>
+    <br/><br/><br/>
 @code {
    
     private List<Specialization> specializations = new();
@@ -73,7 +101,8 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
     private string message = "";  
     private int alert = 0;
     private int proctorID;
-
+    private bool isLoading = false;
+    
     protected override async Task OnInitializedAsync()
     {
         specializations = await DbContext.Specializations.ToListAsync();
@@ -168,8 +197,10 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
     
     private async Task OnRegisterButtonClick()
     {
+        isLoading = true;  // Stop loading
         await SubmitForm();  
         HandleSnackbar();  
+        isLoading = false;  // Stop loading
     }
     
     

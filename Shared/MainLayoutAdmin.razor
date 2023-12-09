@@ -3,12 +3,19 @@
 <PageTitle>PeP ADMIN</PageTitle>
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenuAdmin/>
-    </div>
     <MudThemeProvider/>
     <MudDialogProvider/>
     <MudSnackbarProvider/>
+    <style>
+    body{
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    footer{
+        margin-top: auto;
+    }
+    </style>
     <main>
 
         <article class="content px-4">

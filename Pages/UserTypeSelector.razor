@@ -2,14 +2,24 @@
 @page "/"
 @using Microsoft.EntityFrameworkCore
 @using Programming_Examination_Platform.Model
+@using Programming_Examination_Platform.Services
 @using Task = System.Threading.Tasks.Task
 @inject JavaExamContext DbContext
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject ISnackbar Snackbar
+@inject ProctorService ProctorService
+@inject StudentService StudentService
+
 <PageTitle>Select your account type</PageTitle>
 
-<br/><br/>
+
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+    <div style="padding: 10px; display: flex; align-items: center;">
+        <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
+    </div>
+</MudAppBar>
+<br/><br/><br/><br/><br/><br/><br/>
 <MudText Typo="Typo.h2" Align="Align.Center">Select your account type</MudText>
 <br/><br/>
 <style>
@@ -19,40 +29,187 @@
                 width: 80%;
                 padding: 20px;
           }     
+          .loading-overlay {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background-color: rgba(255, 255, 255, 1); /* White background with 70% opacity */
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              flex-direction: column;
+              z-index: 1000; /* Ensure it's above other content */
+          }
 </style>
+@if (isLoading)
+{
+    <div class="loading-overlay">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+        <MudText Typo="Typo.h5">Loading, please wait...</MudText>
+    </div>
+}
+else{
+    @if (_userID != -1)
+    {
+        @if (_userRole == "Admin")
+        {
+            <MudStack Spacing="2" Row="true">
+                <MudSpacer/>
+                <MudCard>
+                    <MudCardMedia Image="images/loginBanner.png" Height="200"/>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">I'm a Student</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2">Login into the system to access the resources of your <br/>exams</MudText>
+                        <br/>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Href="/loginStudent" Variant="Variant.Text" Color="Color.Primary">Log In</MudButton>
+                    </MudCardActions>
+                </MudCard>
+                <MudSpacer/>
+                <MudCard>
+                    <MudCardMedia Image="images/loginAdminBanner.png" Height="200"/>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">I'm a Proctor</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2">Log in to manage your students and access your proctor<br/> resources</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2" Color="Color.Primary"><strong>Logged in as: @proctor.Email </strong></MudText>
+                        <br/>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Href="/ia-Admin" Variant="Variant.Text" Color="Color.Success">Go to dashboard</MudButton>
+                        <MudSpacer/>
+                        <MudButton OnClick="OnLogoutButtonClick" Variant="Variant.Text" Color="Color.Error">Log out</MudButton>
+                    </MudCardActions>
+                </MudCard>
+                <MudSpacer/>
+            </MudStack>
 
-<div class="center">
-    <div class="center">
-        <MudStack Spacing="15" Row="true">
+            <br/><br/>
+        }
+        else if(_userRole == "Student")
+        {
+            <MudStack Spacing="2" Row="true">
+                <MudSpacer/>
+                <MudCard>
+                    <MudCardMedia Image="images/loginBanner.png" Height="200"/>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">I'm a Student</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2">Login into the system to access the resources of your <br/>exams</MudText>
+                        <br/>
+                         <MudText Typo="Typo.body2" Color="Color.Primary"><strong>Logged in as: @student.Email </strong></MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Href="/indexStudent" Variant="Variant.Text" Color="Color.Success">Go to dashboard</MudButton>
+                        <MudSpacer/>
+                        <MudButton OnClick="OnLogoutButtonClick" Variant="Variant.Text" Color="Color.Error">Log out</MudButton>
+                    </MudCardActions>
+                </MudCard>
+                <MudSpacer/>
+                <MudCard>
+                    <MudCardMedia Image="images/loginAdminBanner.png" Height="200"/>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">I'm a Proctor</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2">Log in to manage your students and access your proctor<br/> resources</MudText>
+                        <br/>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Href="/loginAdmin" Variant="Variant.Text" Color="Color.Primary">Log In</MudButton>
+                    </MudCardActions>
+                </MudCard>
+                <MudSpacer/>
+            </MudStack>
+
+            <br/><br/>
+        }
+    }
+    else
+    {
+        <MudStack Spacing="2" Row="true">
+            <MudSpacer/>
             <MudCard>
                 <MudCardMedia Image="images/loginBanner.png" Height="200"/>
                 <MudCardContent>
                     <MudText Typo="Typo.h5">I'm a Student</MudText>
                     <br/>
-                    <MudText Typo="Typo.body2">Login into the system to access the resources of your exams</MudText>
+                    <MudText Typo="Typo.body2">Login into the system to access the resources of your <br/>exams</MudText>
                     <br/>
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton Href="/loginStudent" Variant="Variant.Text" Color="Color.Primary">Log In</MudButton>
                 </MudCardActions>
             </MudCard>
+            <MudSpacer/>
             <MudCard>
                 <MudCardMedia Image="images/loginAdminBanner.png" Height="200"/>
                 <MudCardContent>
                     <MudText Typo="Typo.h5">I'm a Proctor</MudText>
                     <br/>
-                    <MudText Typo="Typo.body2">Log in to manage your students and access your proctor resources</MudText>
+                    <MudText Typo="Typo.body2">Log in to manage your students and access your proctor<br/> resources</MudText>
                     <br/>
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton Href="/loginAdmin" Variant="Variant.Text" Color="Color.Primary">Log In</MudButton>
                 </MudCardActions>
             </MudCard>
+            <MudSpacer/>
         </MudStack>
-    </div>
-</div>
-<br/><br/>
+
+        <br/><br/>
+    }
+}
+
 
 @code {
 
+    private string _userRole;
+    private int _userID;
+    private bool isLoading = false;
+    private Proctor proctor;
+    private Studenti student;
+    
+    
+    protected override async Task OnInitializedAsync()
+    {
+        
+        try
+        {
+            isLoading = true;
+            _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+            if (_userRole == "Admin")
+            {
+                _userID = await LocalStorage.GetItemAsync<int>("proctorID");
+                proctor= await ProctorService.GetProctorById(_userID);
+            }
+            else if (_userRole == "Student")
+            {
+                _userID = await LocalStorage.GetItemAsync<int>("userID");
+               student = await StudentService.GetStudentById(_userID);
+            }
+            @if (_userRole == null)
+            {
+                _userID = -1;
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+        
+    }
+    private async Task OnLogoutButtonClick()
+    {
+        _userID = -1;
+        _userRole = null;
+         await LocalStorage.SetItemAsync("userID",-1);
+        await LocalStorage.SetItemAsync("proctorID",-1);
+        StateHasChanged();
+        
+    }
 }

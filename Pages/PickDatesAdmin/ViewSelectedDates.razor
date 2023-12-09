@@ -10,17 +10,32 @@
 @inject ProctorService ProctorService
 @inject ISnackbar Snackbar;
 
-<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
-    <MudText Typo="Typo.h5">
-        <strong>PeP Management</strong>
-    </MudText>
-    <MudSpacer/>
-    <MudIconButton Icon="@Icons.Material.Filled.Shield" Color="Color.Inherit"/>
-    <MudText Typo="Typo.h6">@_userEmail</MudText>
-    <MudMenu Icon="@Icons.Material.Filled.Menu">
-        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
-    </MudMenu>
+<MudLayout>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+  <div style="padding: 10px; display: flex; align-items: center;">
+    <img src="images/headerProctor.png" style="max-height: 150px; max-width: 250px;"/>
+  </div>
+  <MudSpacer/>
+  <MudIconButton Icon="@Icons.Material.Filled.Verified" Color="Color.Inherit"/>
+  <MudText Typo="Typo.h6">@_userEmail</MudText>
 </MudAppBar>
+<MudDrawer @bind-Open="@open" Elevation="0" >
+    <MudNavMenu Class="mud-width-full">
+        <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">WebAssembly Platform</MudText>
+        <MudDivider Class="my-2" />
+        <MudNavLink Href="/ia-Admin" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="/view-users" Icon="@Icons.Material.Filled.SupervisedUserCircle">Students</MudNavLink>
+        <MudNavLink Href="/ViewPlannedExams" Icon="@Icons.Material.Filled.DateRange">Planned exams</MudNavLink>
+        <MudNavLink Href="/ExamGrades" Icon="@Icons.Material.Filled.Checklist">Exam results</MudNavLink>
+    
+        <MudDivider Class="my-2"/>
+    <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+<MudMainContent Class="pt-16 px-16">
+  <MudContainer Class="mt-6">
 <br/><br/>
 <MudText Typo="Typo.h2" Align="Align.Center">Planned Exams</MudText>
 <br/><br/>
@@ -57,7 +72,7 @@
                                 </CardHeaderActions>
                             </MudCardHeader>
                             <MudCardContent>
-                                <MudField Label="Exam Planned on:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@schedule.Date.ToIsoDateString()</MudField>
+                                <MudField Label="Exam Planned on:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@schedule.Date.Value</MudField>
                                 <MudField Label="Room:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork">@schedule.RoomName</MudField>
                                 <MudField Label="Total places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.EventSeat">@schedule.TotalPlaces</MudField>
                                 <MudField Label="Available places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra">
@@ -87,7 +102,7 @@
                                 </CardHeaderActions>
                             </MudCardHeader>
                             <MudCardContent>
-                                <MudField AdornmentColor="Color.Error" Label="Exam Planned on:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@schedule.Date.ToIsoDateString()</MudField>
+                                <MudField AdornmentColor="Color.Error" Label="Exam Planned on:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@schedule.Date.Value</MudField>
                                 <MudField AdornmentColor="Color.Error" Label="Room:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork">@schedule.RoomName</MudField>
                                 <MudField AdornmentColor="Color.Error" Label="Total places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.EventSeat">@schedule.TotalPlaces</MudField>
                                 <MudField AdornmentColor="Color.Error" Label="Available places:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra">
@@ -114,8 +129,17 @@
 </div>
 
 <br/><br/><br/><br/><br/><br/>
-
+ </MudContainer>
+</MudMainContent>
+</MudLayout>
 @code {
+    //Variables:
+    bool open = false;
+
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
     private int _userID;
     private string _userEmail;
     private string _selectedExam;

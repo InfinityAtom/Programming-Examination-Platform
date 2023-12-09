@@ -9,17 +9,32 @@
 @inject ProctorService ProctorService
 @inject ISnackbar Snackbar;
 
-<MudAppBar Color="Color.Primary" Fixed="false" Elevation="0">
-    <MudText Typo="Typo.h5">
-        <strong>PeP Management</strong>
-    </MudText>
-    <MudSpacer/>
-    <MudIconButton Icon="@Icons.Material.Filled.Shield" Color="Color.Inherit"/>
-    <MudText Typo="Typo.h6">@_userEmail</MudText>
-    <MudMenu Icon="@Icons.Material.Filled.Menu">
-        <MudMenuItem OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout">Log Out</MudMenuItem>
-    </MudMenu>
+<MudLayout>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+  <div style="padding: 10px; display: flex; align-items: center;">
+    <img src="images/headerProctor.png" style="max-height: 150px; max-width: 250px;"/>
+  </div>
+  <MudSpacer/>
+  <MudIconButton Icon="@Icons.Material.Filled.Verified" Color="Color.Inherit"/>
+  <MudText Typo="Typo.h6">@_userEmail</MudText>
 </MudAppBar>
+<MudDrawer @bind-Open="@open" Elevation="0" >
+    <MudNavMenu Class="mud-width-full">
+        <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">WebAssembly Platform</MudText>
+        <MudDivider Class="my-2" />
+        <MudNavLink Href="/ia-Admin" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="/view-users" Icon="@Icons.Material.Filled.SupervisedUserCircle">Students</MudNavLink>
+        <MudNavLink Href="/ViewPlannedExams" Icon="@Icons.Material.Filled.DateRange">Planned exams</MudNavLink>
+        <MudNavLink Href="/ExamGrades" Icon="@Icons.Material.Filled.Checklist">Exam results</MudNavLink>
+    
+        <MudDivider Class="my-2"/>
+    <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+<MudMainContent Class="pt-16 px-16">
+  <MudContainer Class="mt-6">
 <style>
 .center
 {
@@ -39,10 +54,16 @@
                 <MudText Typo="Typo.caption">When the student's will book their exam, they will only be able to pick a date that you set!</MudText>
                 <br/><br/>
                 <MudDatePicker PickerVariant="PickerVariant.Dialog"
-                               Label="Exam Date"
+                               Label="Pick a date"
                                DateFormat="dd/MM/yyyy"
                                TValue="DateTime?"
-                               @bind-Date="_selectedDate"/>
+                               @bind-Date="_selectedDateOnly"/>
+                <MudTimePicker PickerVariant="PickerVariant.Dialog" 
+                               Label="Select the time" 
+                               @bind-Time="_selectedTime"
+                               TimeFormat="HH:mm:ss"
+                               TValue="Time?"/>
+
                 <MudTextField T="string" Label="Exam Room Name" @bind-Value="_examRoomName" HelperText="" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork" AdornmentColor="Color.Primary"/>
                 <MudTextField T="string" Label="Number of seats" @bind-Value="_numberOfSeats" HelperText="" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra" AdornmentColor="Color.Primary"/>
             </MudCardContent>
@@ -53,13 +74,22 @@
     </div>
 </div>
 <br/><br/>
-
-
+  </MudContainer>
+</MudMainContent>
+</MudLayout>
 @code {
+    //Variables:
+    bool open = false;
+
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
     private int _userID;
     private string _userEmail;
     private string _selectedExam;
-    private DateTime? _selectedDate = DateTime.Now;
+    private DateTime? _selectedDateOnly = DateTime.Now;
+    private TimeSpan? _selectedTime;
     private bool _checkIfHasBookedExam;
     private string _examRoomName;
     private string _numberOfSeats;
@@ -69,9 +99,9 @@
     private int _daysTillExam;
 
     //Constants
-        private const string _localStorageUserId = "proctorID";
-        private const string _navigationToLogin = "/";
-        private const string _emailError = "Email not found";
+    private const string _localStorageUserId = "proctorID";
+    private const string _navigationToLogin = "/";
+    private const string _emailError = "Email not found";
     private string _userRole;
 
 
@@ -79,7 +109,7 @@
     {
         _userRole = await LocalStorage.GetItemAsync<string>("userRole");
 
-    // Check if user is a student or if no role is set.
+        // Check if user is a student or if no role is set.
         if (string.IsNullOrEmpty(_userRole) || _userRole == "Student")
         {
             NavManager.NavigateTo("/loginAdmin");
@@ -87,7 +117,7 @@
         }
 
         _userID = await LocalStorage.GetItemAsync<int>(_localStorageUserId);
-    // await LocalStorage.SetItemAsync("selectedDate", _selectedDate.Value);
+        // await LocalStorage.SetItemAsync("selectedDate", _selectedDate.Value);
         if (_userID == -1) // or another value that represents "no ID"
         {
             NavManager.NavigateTo("/loginAdmin");
@@ -100,12 +130,18 @@
 
     private async Task HandleConfirmClick()
     {
-    // Create a new ExamSchedule instance and populate it
+        if(_selectedDateOnly.HasValue)
+        {
+            DateTime date = _selectedDateOnly.Value;
+            DateTime combinedTime = date.Add(_selectedTime.Value);
+        
+        
+        // Create a new ExamSchedule instance and populate it
         var examSchedule = new ExamSchedule
         {
             ProctorId = _userID,
             ExamId = 1,
-            Date = _selectedDate,
+            Date = combinedTime,
             RoomName = _examRoomName,
             TotalPlaces = Convert.ToInt32(_numberOfSeats),
             AvailablePlaces = Convert.ToInt32(_numberOfSeats)
@@ -113,6 +149,12 @@
         await ProctorService.AddExamSchedule(examSchedule);
         Snackbar.Add("Exam schedule added successfully!", Severity.Success);
         NavManager.NavigateTo("/ViewPlannedExams");
+        }
+        
+        else
+        {
+            Snackbar.Add("Date or time is null!", Severity.Error);
+        }
     }
 
     private async Task OnLogoutButtonClick()

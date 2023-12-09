@@ -32,4 +32,6 @@ public partial class Studenti
     public virtual Specialization Specialization { get; set; } = null!;
 
     public virtual ICollection<Task> Tasks { get; set; } = new List<Task>();
+
+    public virtual ICollection<Test> Tests { get; set; } = new List<Test>();
 }

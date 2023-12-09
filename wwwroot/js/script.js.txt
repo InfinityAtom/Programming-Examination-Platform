@@ -1,0 +1,74 @@
+﻿function preventRefresh()
+{
+    window.addEventListener('beforeunload', function (e) {
+        // Cancel the event
+        e.preventDefault();
+        // Chrome requires returnValue to be set
+        e.returnValue = '';
+    });
+    window.addEventListener('keydown', function(e) {
+        if (e.key === "F5" || (e.ctrlKey && e.key === 'r')) {
+            e.preventDefault();
+        }
+    });
+}
+
+function isFullScreen() {
+    return document.fullscreenElement != null ||
+        document.mozFullScreenElement != null ||
+        document.webkitFullscreenElement != null ||
+        document.msFullscreenElement != null;
+}
+
+function toggleFullScreen() {
+    if (!isFullScreen()) {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+            document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+            document.documentElement.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// Call this function to check if the browser is in full screen
+window.addEventListener('fullscreenchange', function (e) {
+    if (isFullScreen()) {
+        DotNet.invokeMethodAsync('Programming Examination Platform', 'EnterFullScreenMode');
+    } else {
+        DotNet.invokeMethodAsync('Programming Examination Platform', 'ExitFullScreenMode');
+    }
+});
+
+window.addEventListener('beforeunload', () => {
+    DotNet.invokeMethodAsync('Programming Examination Platform', 'SaveState');
+});
+
+window.stopTimer = () => {
+    // Call the method that stops the timer in C#
+    DotNet.invokeMethodAsync('Programming Examination Platform', 'StopTimerMethod');
+};
+window.addEventListener('beforeunload', (event) => {
+    event.preventDefault();
+    event.returnValue = ''; // Chrome requires returnValue to be set.
+    DotNet.invokeMethodAsync('Programming Examination Platform', 'SaveState');
+});
+window.addEventListener('beforeunload', () => {
+    DotNet.invokeMethodAsync('Programming Examination Platform', 'HandlePageRefresh');
+});
+window.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+}, false);
