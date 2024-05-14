@@ -1,16 +1,12 @@
-﻿using MudBlazor;
-using static System.Timers.Timer;
-
-namespace Programming_Examination_Platform.Services;
+﻿namespace Programming_Examination_Platform.Services;
 
 public class TimerService
 {
   private Timer _timer;
-  private TimeSpan _defaultTimeSpan = TimeSpan.FromMinutes(60);
   public TimeSpan TimeRemaining { get; private set; }
-  public event Action OnTick;
-  public event EventHandler TimerElapsed;
-  private TimeSpan _duration;
+  public event Action? OnTick;
+  public event EventHandler? TimerElapsed;
+
   public TimerService()
   {
     // Initialize the timer
@@ -19,7 +15,7 @@ public class TimerService
     TimeRemaining = TimeSpan.FromHours(1);
   }
 
-  private void UpdateTimer(object state)
+  private void UpdateTimer(object? state)
   {
     TimeRemaining = TimeRemaining.Add(TimeSpan.FromSeconds(-1));
     OnTick?.Invoke(); // Notify subscribers that the timer has ticked
@@ -28,7 +24,7 @@ public class TimerService
       _timer.Change(Timeout.Infinite, 1000); // Stop the timer
     }
 
-    TimerElapsed?.Invoke(this, EventArgs.Empty);
+    TimerElapsed!(this, EventArgs.Empty);
   }
 
   public void SetTimeRemaining(TimeSpan time)

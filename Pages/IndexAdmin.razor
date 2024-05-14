@@ -36,9 +36,36 @@
 <br/><br/>
 
     <MudText Typo="Typo.h2">Dashboard Admin</MudText>
+    <br/><br/><br/><br/>
+    <MudText Typo="Typo.h4">Accessibility Tools for Students</MudText>
     <br/>
-    <br/>
-<MudText Typo="Typo.h3">Proctor Tools</MudText>
+    <MudStack Spacing="5" Row="true">
+        <MudCard>
+            <MudCardMedia Image="images/blind.png" Height="200"/>
+            <MudCardContent>
+                <MudText Typo="Typo.h5">Register</MudText>
+                <MudText Typo="Typo.body2">Register students that are visually impaired for accessible<br/>  exam experiences.</MudText>
+                <br/><br/><br/>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="/blind-register" Variant="Variant.Text" Color="Color.Primary">Register</MudButton>
+            </MudCardActions>
+        </MudCard>
+        <MudCard>
+                    <MudCardMedia Image="images/card.png" Height="200"/>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">Generate access codes<br/> for visually impaired students</MudText>
+                        <br/>
+                        <MudText Typo="Typo.body2">The codes will be used by visually impaired students for easy login.&#8195; </MudText>
+                        <br/><br/>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Href="/login-codes-generator" Variant="Variant.Text" Color="Color.Primary">Generate</MudButton>
+                    </MudCardActions>
+                </MudCard>
+    </MudStack>
+        <br/><br/><br/><br/>
+<MudText Typo="Typo.h4">Proctor Tools</MudText>
 <br/><br/>
 <MudStack Spacing="3" Row="true">
     <MudCard>

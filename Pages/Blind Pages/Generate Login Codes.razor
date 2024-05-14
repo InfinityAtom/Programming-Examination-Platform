@@ -1,0 +1,166 @@
+﻿@page "/login-codes-generator"
+@layout MainLayoutAdmin
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavManager;
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage;
+@inject ProctorService ProctorService
+@inject ISnackbar Snackbar;
+@inject JavaExamContext DbContext;
+<MudLayout>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+  <div style="padding: 10px; display: flex; align-items: center;">
+    <img src="images/headerProctor.png" style="max-height: 150px; max-width: 250px;"/>
+  </div>
+  <MudSpacer/>
+  <MudIconButton Icon="@Icons.Material.Filled.Verified" Color="Color.Inherit"/>
+  <MudText Typo="Typo.h6">@_userEmail</MudText>
+</MudAppBar>
+<MudDrawer @bind-Open="@open" Elevation="0" >
+    <MudNavMenu Class="mud-width-full">
+        <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">WebAssembly Platform</MudText>
+        <MudDivider Class="my-2" />
+        <MudNavLink Href="/ia-Admin" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="/view-users" Icon="@Icons.Material.Filled.SupervisedUserCircle">Students</MudNavLink>
+        <MudNavLink Href="/ViewPlannedExams" Icon="@Icons.Material.Filled.DateRange">Planned exams</MudNavLink>
+        <MudNavLink Href="/ExamGrades" Icon="@Icons.Material.Filled.Checklist">Exam results</MudNavLink>
+    
+        <MudDivider Class="my-2"/>
+    <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+<MudMainContent Class="pt-16 px-16">
+    <MudContainer Class="mt-6">
+              <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+                <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
+                  <ItemContent>
+                    <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.SupervisedUserCircle">Select the student</MudAlert>
+                  </ItemContent>
+                </MudTimelineItem>
+                  <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+                      <ItemContent>
+                          <MudAlert Severity="Severity.Normal" Icon="@Icons.Material.Filled.CardGiftcard">Generate the code</MudAlert>
+                      </ItemContent>
+                  </MudTimelineItem>
+              </MudTimeline>
+        <br/><br/>
+        <MudText Typo="Typo.h4" Align="Align.Center">1. What student do you want to generate a code for?</MudText>
+        <br/><br/>
+        <MudStack Spacing="3" Row="true">
+            <MudSpacer/>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">Select a student</MudText>
+                                            <MudText Typo="Typo.caption">From the search box below, select or search a blind student from the list, so that you'll &#8195; &#8195; &#8195; <br/>generate a login code for him for easier login</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.SupervisedUserCircle" Size="Size.Large"/>
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                        <MudAutocomplete T="Studenti" Label="Select Student" @bind-Value="selectedStudent"
+                         Items="blindStudents" ToStringFunc="FormatStudentLabel"
+                         SearchFunc="@SearchStudents" Adornment="Adornment.Start"
+                         AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary">
+                         </MudAutocomplete>
+                </MudCardContent>
+                <MudCardActions>
+                  <MudButton EndIcon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" Variant="Variant.Outlined" OnClick="ProceedWithCodeGeneration">Next</MudButton>
+
+                </MudCardActions>
+            </MudCard>
+                         
+            <MudSpacer/>
+        </MudStack>
+        <br/><br/><br/><br/><br/><br/><br/>
+    </MudContainer>
+</MudMainContent>
+</MudLayout>
+@code {
+    // Variables:
+    bool open = false;
+    void ToggleDrawer() {
+        open = !open;
+    }
+
+    private List<Studenti> blindStudents;
+    private Studenti selectedStudent;
+    private int _userID;
+    private string _userEmail;
+    // Constants
+    private const string _localStorageUserId = "proctorID";
+    private const string _navigationToLogin = "/";
+    private const string _emailError = "Email not found";
+
+    protected override async Task OnInitializedAsync() {
+        _userID = await LocalStorage.GetItemAsync<int>(_localStorageUserId);
+        if (_userID <= 0) {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+
+    // Corrected fetching of students and checking the 'Blind' property
+        var students = await DbContext.Studentis
+            .Where(s => s.ProctorId == _userID && s.Blind==1?true:false) // Assuming 'Blind' is a boolean
+            .ToListAsync();
+
+    // Get student IDs who already have a login code
+        var studentsWithCodes = await DbContext.LoginCodesBlinds
+            .Select(c => c.StudentId)
+            .Distinct()
+            .ToListAsync();
+
+    // Filter out students who already have a code
+        blindStudents = students.Where(s => !studentsWithCodes.Contains(s.StudnetId)).ToList();
+
+        var proctor = await DbContext.Proctors
+            .Where(p => p.ProctorId == _userID)
+            .FirstOrDefaultAsync();
+        _userEmail = proctor?.Email ?? _emailError;
+    }
+
+
+
+    private string FormatStudentLabel(Studenti student) {
+        return $"{student.FirstName} {student.LastName} - {student.Email}";
+    }
+
+    private Task<IEnumerable<Studenti>> SearchStudents(string value) {
+        if (string.IsNullOrEmpty(value))
+            return Task.FromResult(blindStudents.AsEnumerable());
+
+        return Task.FromResult(blindStudents.Where(student =>
+            student.FirstName.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+            student.LastName.Contains(value, StringComparison.InvariantCultureIgnoreCase) ||
+            student.Email.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private async Task ProceedWithCodeGeneration() {
+        if (selectedStudent == null) {
+            Snackbar.Add("No valid student selected. Please select a student from the list to proceed.", Severity.Error);
+            return;
+        }
+
+    // Check again if the student already has a code
+        bool codeExists = await DbContext.LoginCodesBlinds.AnyAsync(c => c.StudentId == selectedStudent.StudnetId);
+        if (codeExists) {
+            Snackbar.Add("This student already has a registered code.", Severity.Error);
+            return;
+        }
+
+        await LocalStorage.SetItemAsync("selectedBlindStudent", selectedStudent.StudnetId);
+        NavManager.NavigateTo("/login-codes-generator/view-code");
+    }
+
+
+    private async Task OnLogoutButtonClick() {
+        await LocalStorage.SetItemAsync(_localStorageUserId, -1);
+        NavManager.NavigateTo(_navigationToLogin);
+    }
+}

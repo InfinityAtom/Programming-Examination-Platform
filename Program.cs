@@ -6,8 +6,10 @@ using MudBlazor;
 using MudBlazor.Services;
 using Programming_Examination_Platform.Model;
 using Programming_Examination_Platform.Services;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 // Add services to the container.
 builder.Services.AddSingleton<TimerService>();

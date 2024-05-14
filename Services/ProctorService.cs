@@ -143,7 +143,18 @@ public class ProctorService
   }
 
 
-
+  public async Task<List<StudentInfo>> GetBlindStudentsInfoByProctorId(int proctorId)
+  {
+    return await _context.Studentis
+      .Where(student => student.ProctorId == proctorId && student.Blind == 1)
+      .Select(s => new StudentInfo {
+        FirstName = s.FirstName,
+        LastName = s.LastName,
+        Email = s.Email
+      })
+      .ToListAsync();
+    
+  }
 
 
 
@@ -219,4 +230,11 @@ public class ProctorService
 
     return student?.Specialization?.SpecializationName;
   }
+}
+
+public class StudentInfo
+{
+  public string FirstName { get; set; }
+  public string LastName { get; set; }
+  public string Email { get; set; }
 }

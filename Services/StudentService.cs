@@ -1,12 +1,11 @@
-﻿using System.Text;
-
-namespace Programming_Examination_Platform.Services;
-
-using System.Threading.Tasks;
+﻿using System.Net;
+using System.Net.Mail;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Programming_Examination_Platform.Model;
-using System.Net;
-using System.Net.Mail;
+using Task = System.Threading.Tasks.Task;
+
+namespace Programming_Examination_Platform.Services;
 
 public class StudentService
 {
@@ -17,7 +16,7 @@ public class StudentService
         _context = context;
     }
 
-    public async System.Threading.Tasks.Task SaveBooking(Booking booking)
+    public async Task SaveBooking(Booking booking)
     {
         _context.Bookings.Add(booking);
         await _context.SaveChangesAsync();
@@ -30,9 +29,10 @@ public class StudentService
 
     public async Task<Model.Task> GetTaskByUserId(int userId)
     {
+       
         return await _context.Tasks.FirstOrDefaultAsync(t => t.StudentId == userId);
     }
-    
+
     public async Task<Studenti?> GetStudentById(int id)
     {
         return await _context.Studentis.FirstOrDefaultAsync(student => student.StudnetId == id);
@@ -43,7 +43,7 @@ public class StudentService
             .Where(t => t.FinalGrade.HasValue && t.FinalGrade > grade)
             .ToListAsync();
     }
-    private const string ICSContentTemplate = @"BEGIN:VCALENDAR
+    private const string IcsContentTemplate = @"BEGIN:VCALENDAR
 PRODID:-//YourCompanyName//YourProductName//EN
 VERSION:2.0
 BEGIN:VEVENT
@@ -59,7 +59,7 @@ END:VCALENDAR";
 
     private const string DateTimeFormat = "yyyyMMddTHHmmssZ";
     
-    public async System.Threading.Tasks.Task SendConfirmationEmail(Studenti student, string examName, DateTime examDate)
+    public async Task SendConfirmationEmail(Studenti student, string examName, DateTime examDate)
     {
         try
         {
@@ -89,16 +89,14 @@ END:VCALENDAR";
                 Credentials = new NetworkCredential(fromAddress.Address, "p@SSWORD20caractereabc1")
             };
 
-            using (var message = new MailMessage(fromAddress, toAddress)
-                   {
-                       Subject = subject,
-                       Body = body
-                   })
+            using (var message = new MailMessage(fromAddress, toAddress))
             {
+                message.Subject = subject;
+                message.Body = body;
                 // Generate ICS content
                 DateTime examEndDate = examDate.AddHours(1); // Assuming 1 hour for exam duration. Adjust as needed.
                 
-                string icsContent = string.Format(ICSContentTemplate,
+                string icsContent = string.Format(IcsContentTemplate,
                     Guid.NewGuid(),
                     DateTime.UtcNow.ToString(DateTimeFormat),
                     examDate.ToString(DateTimeFormat),
@@ -137,7 +135,7 @@ END:VCALENDAR";
         return await _context.ExamSchedules
             .Where(es => es.AvailablePlaces >= 1 && es.ProctorId == proctorId.Value)
             .OrderBy(es => es.Date)  // Order by date for getting the earliest date first
-            .Select(es => es.Date.Value)
+            .Select(es => es.Date!.Value)
             .ToListAsync();
     }
     public async Task<int?> GetAvailablePlacesByExamScheduleId(int examScheduleId)
@@ -152,7 +150,7 @@ END:VCALENDAR";
         Console.WriteLine($"Exam Schedule: {examSchedule?.ExamScheduleId}, Available Places: {examSchedule?.AvailablePlaces}");
         return examSchedule?.RoomName;
     }
-    public async System.Threading.Tasks.Task UpdateExamSchedule(ExamSchedule examSchedule)
+    public async Task UpdateExamSchedule(ExamSchedule examSchedule)
     {
         _context.Entry(examSchedule).State = EntityState.Modified;
         await _context.SaveChangesAsync();
@@ -174,7 +172,7 @@ END:VCALENDAR";
         
         
     }
-    public async System.Threading.Tasks.Task DeleteTestRecords(int testId)
+    public async Task DeleteTestRecords(int testId)
     {
         // Find the test with the given TestId
         var test = await _context.Tests.FindAsync(testId);
@@ -189,7 +187,7 @@ END:VCALENDAR";
             await _context.SaveChangesAsync();
         }
     }
-    public async System.Threading.Tasks.Task DeleteTestQuestionsByTestId(int testId)
+    public async Task DeleteTestQuestionsByTestId(int testId)
     {
         var testQuestions = _context.TestQuestions.Where(q => q.TestId == testId);
         _context.TestQuestions.RemoveRange(testQuestions);
@@ -244,9 +242,10 @@ END:VCALENDAR";
             .Where(tq => tq.TestId == testId)
             .OrderBy(tq => tq.TestQuestionId)
             .Skip(currentQuestionIndex)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync() ?? throw new InvalidOperationException();
     }
-    public async System.Threading.Tasks.Task UpdateStudentAnswer(int testQuestionId, string studentAnswer)
+    
+    public async Task UpdateStudentAnswer(int testQuestionId, string studentAnswer)
     {
         var testQuestion = await _context.TestQuestions.FindAsync(testQuestionId);
     
@@ -256,6 +255,4 @@ END:VCALENDAR";
             await _context.SaveChangesAsync();
         }
     }
-
-
 }

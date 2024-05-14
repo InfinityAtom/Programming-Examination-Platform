@@ -21,6 +21,8 @@ public partial class JavaExamContext : DbContext
 
     public virtual DbSet<ExamSchedule> ExamSchedules { get; set; }
 
+    public virtual DbSet<LoginCodesBlind> LoginCodesBlinds { get; set; }
+
     public virtual DbSet<Proctor> Proctors { get; set; }
 
     public virtual DbSet<QuestionBank> QuestionBanks { get; set; }
@@ -37,7 +39,7 @@ public partial class JavaExamContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=tcp:pep2.database.windows.net,1433;Initial Catalog=db;Persist Security Info=False;User ID=gabi;Password=Parola12;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
+        => optionsBuilder.UseSqlServer("Server=(localdb)\\HotelMgmSystem;Database=db;Trusted_Connection=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -92,6 +94,24 @@ public partial class JavaExamContext : DbContext
                 .HasForeignKey(d => d.ProctorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ExamSchedule_Proctor");
+        });
+
+        modelBuilder.Entity<LoginCodesBlind>(entity =>
+        {
+            entity.HasKey(e => e.CodeId);
+
+            entity.ToTable("LoginCodesBlind");
+
+            entity.Property(e => e.CodeId).HasColumnName("CodeID");
+            entity.Property(e => e.LoginCode)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.StudentId).HasColumnName("StudentID");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.LoginCodesBlinds)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_LoginCodesBlind_Studenti");
         });
 
         modelBuilder.Entity<Proctor>(entity =>
@@ -159,7 +179,7 @@ public partial class JavaExamContext : DbContext
             entity.Property(e => e.FirstName).HasMaxLength(50);
             entity.Property(e => e.Groupa).HasMaxLength(50);
             entity.Property(e => e.LastName).HasMaxLength(50);
-            entity.Property(e => e.Password).HasMaxLength(50);
+            entity.Property(e => e.Password).HasMaxLength(64);
             entity.Property(e => e.ProctorId).HasColumnName("ProctorID");
             entity.Property(e => e.SpecializationId).HasColumnName("SpecializationID");
             entity.Property(e => e.Year).HasMaxLength(50);

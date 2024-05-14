@@ -3,6 +3,8 @@
 @using Programming_Examination_Platform.Model
 @using Microsoft.EntityFrameworkCore
 @using Task = System.Threading.Tasks.Task
+@using System.Security.Cryptography
+@using System.Text
 @inject JavaExamContext DbContext
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject ISnackbar Snackbar
@@ -71,6 +73,14 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
             </MudAutocomplete>
             <MudTextField T="string" Label="Year" HelperText="" @bind-Value="@Anul" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled._2k" AdornmentColor="Color.Primary"/>
             <MudTextField T="string" Label="Group" HelperText="" @bind-Value="@Grupa" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleAlt" AdornmentColor="Color.Primary"/>
+            <br/><br/>
+            <MudAlert Icon="@Icons.Material.Filled.Accessibility" Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center">Accessibility Zone</MudAlert>
+            <MudSwitch Size="Size.Large" @bind-Checked="@blindCheck"
+                       ThumbIcon="@(blindCheck == true ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                       ThumbIconColor="@(blindCheck == true ? Color.Primary : Color.Default)">
+                Blind Student? <b>  @(blindCheck ? "Yes" : "No")</b>
+            </MudSwitch>
+            
         </MudCardContent>
         <MudCardActions>
             <MudButton OnClick="@OnRegisterButtonClick">Register</MudButton>
@@ -83,12 +93,13 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
 </MudStack>
     <br/><br/><br/>
 @code {
-   
+    private bool blindCheck { get; set; }
+    private bool _checked3 = false;
     private List<Specialization> specializations = new();
     private Specialization selectedSpecialization;
     private List<Proctor> proctors = new();
     private Proctor selectedProctor;
-    
+
     private string Email { get; set; }
     private string Parola { get; set; }
     private string RepeatPassword { get; set; }
@@ -97,28 +108,47 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
     private string Facultatea { get; set; }
     private string Anul { get; set; }
     private string Grupa { get; set; }
+    private int Cheater = 0;
     private bool PasswordsMatch => Parola == RepeatPassword;
     private string message = "";  
     private int alert = 0;
     private int proctorID;
     private bool isLoading = false;
-    
+
     protected override async Task OnInitializedAsync()
     {
         specializations = await DbContext.Specializations.ToListAsync();
         proctors = await DbContext.Proctors.ToListAsync();
     }
+    private static string ComputeSha256Hash(string rawData)
+    {
+    // Create a SHA256   
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+    // ComputeHash - returns byte array  
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
 
+    // Convert byte array to a string   
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
+    }
+    
+    
     private async Task<IEnumerable<Specialization>> SearchSpecializations(string value)
     {
-    
+
         await Task.Delay(5);
 
-    
+
         if (string.IsNullOrEmpty(value))
             return specializations;
 
-    
+
         return specializations.Where(s => s.SpecializationName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
@@ -134,27 +164,27 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
     }
 
 
-   private async Task SubmitForm()
+    private async Task SubmitForm()
     {
         try
         {
             message = string.Empty; 
             alert = 1; 
 
-            
+
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Parola) || string.IsNullOrWhiteSpace(RepeatPassword) || string.IsNullOrWhiteSpace(Numele) || string.IsNullOrWhiteSpace(Prenumele) || string.IsNullOrWhiteSpace(Facultatea) || selectedSpecialization == null || string.IsNullOrWhiteSpace(Anul) || string.IsNullOrWhiteSpace(Grupa))
             {
                 message = "All fields are required!";
                 return;
             }
-            
+
             // Validate passwords match
             if (!PasswordsMatch)
             {
                 message = "Passwords do not match!";
                 return;
             }
-            
+
             // Check if the user with the provided email already exists
             var existingUser = await DbContext.Studentis.FirstOrDefaultAsync(s => s.Email == Email);
             if (existingUser != null)
@@ -165,17 +195,19 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
 
             // Create a new student record. Do not set the StudentID.
             Studenti newStudent = new Studenti
-            {
-                Email = Email,
-                Password = Parola,
-                FirstName = Prenumele,
-                LastName = Numele,
-                Faculty = Facultatea,
-                SpecializationId = selectedSpecialization.SpecializationId,
-                ProctorId = selectedProctor.ProctorId,
-                Year = Anul,
-                Groupa = Grupa
-            };
+                {
+                    Email = Email,
+                    Password = ComputeSha256Hash(Parola),
+                    FirstName = Prenumele,
+                    LastName = Numele,
+                    Faculty = Facultatea,
+                    SpecializationId = selectedSpecialization.SpecializationId,
+                    ProctorId = selectedProctor.ProctorId,
+                    Year = Anul,
+                    Groupa = Grupa,
+                    Blind = blindCheck ? 1 : 0,
+                    Cheater = 0
+        };
 
             // Add the new student to the database
             DbContext.Studentis.Add(newStudent);

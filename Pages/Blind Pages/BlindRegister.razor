@@ -1,0 +1,257 @@
+﻿@page "/blind-register"
+@layout MainLayoutAdmin
+@using Programming_Examination_Platform.Services
+@using Task = System.Threading.Tasks.Task
+@using Programming_Examination_Platform.Model
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Cryptography
+@using System.Text
+@inject NavigationManager NavManager;
+@inject IDialogService DialogService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ProctorService ProctorService
+@inject ISnackbar Snackbar;
+@inject JavaExamContext DbContext
+@inject NavigationManager NavigationManager
+
+<MudLayout>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+  <div style="padding: 10px; display: flex; align-items: center;">
+    <img src="images/headerProctor.png" style="max-height: 150px; max-width: 250px;"/>
+  </div>
+  <MudSpacer/>
+  <MudIconButton Icon="@Icons.Material.Filled.Verified" Color="Color.Inherit"/>
+  <MudText Typo="Typo.h6">@_userEmail</MudText>
+</MudAppBar>
+<MudDrawer @bind-Open="@open" Elevation="0" >
+    <MudNavMenu Class="mud-width-full">
+        <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">WebAssembly Platform</MudText>
+        <MudDivider Class="my-2" />
+        <MudNavLink Href="/ia-Admin" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="/view-users" Icon="@Icons.Material.Filled.SupervisedUserCircle">Students</MudNavLink>
+        <MudNavLink Href="/ViewPlannedExams" Icon="@Icons.Material.Filled.DateRange">Planned exams</MudNavLink>
+        <MudNavLink Href="/ExamGrades" Icon="@Icons.Material.Filled.Checklist">Exam results</MudNavLink>
+    
+        <MudDivider Class="my-2"/>
+    <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+<MudMainContent Class="pt-16 px-16">
+  <MudContainer Class="mt-6">
+
+      <br/><br/>
+                 <MudText Typo="Typo.h2" Align="Align.Center">Register Blind Students</MudText>
+                 <br/><br/>
+      <MudStack Spacing="3" Row="true">
+           @if (isLoading)
+              {
+                  <div class="loading-overlay">
+                      <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                      <MudText Typo="Typo.h5">Please wait while we are creating your new account...</MudText>
+                  </div>
+              }
+          <MudSpacer/>
+          <MudCard>
+              <MudCardMedia Image="images/registerBanner.png" Height="200"/>
+              <MudCardContent>
+                  <MudText Typo="Typo.h5">Register</MudText>
+                  <MudText Typo="Typo.caption">For visually impaired students, the password will be auto set as:<br/>First Letter of the First name + The last name + "&" + The number of charaters from the first name + "_" + The number of characters from the last name</MudText>
+                  <MudTextField T="string" Label="Email" @bind-Value="@Email" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" AdornmentColor="Color.Primary"/>
+                  <MudTextField T="string" Label="Last name"  @bind-Value="@Numele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
+                  <MudTextField T="string" Label="First name" @bind-Value="@Prenumele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
+                  <MudTextField T="string" Label="Faculty" @bind-Value="@Facultatea" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.School" AdornmentColor="Color.Primary"/>
+                  <MudAutocomplete T="Specialization" Label="Specialization" @bind-Value="selectedSpecialization" Items="specializations" ToStringFunc="@(x => x.SpecializationName)" SearchFunc="@SearchSpecializations" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Book" AdornmentColor="Color.Primary"></MudAutocomplete>
+                  <MudTextField T="string" Label="Year" HelperText="" @bind-Value="@Anul" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled._2k" AdornmentColor="Color.Primary"/>
+                  <MudTextField T="string" Label="Group" HelperText="" @bind-Value="@Grupa" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleAlt" AdornmentColor="Color.Primary"/>
+                  <br/><br/>
+              </MudCardContent>
+              <MudCardActions>
+                  <MudButton OnClick="@OnRegisterButtonClick">Register Student</MudButton>
+              </MudCardActions>
+          </MudCard>
+      <MudSpacer/>
+      </MudStack>
+      <br/><br/>
+      
+  </MudContainer>
+</MudMainContent>
+</MudLayout>
+@code {
+    //Variables:
+    bool open = false;
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
+    private bool blindCheck { get; set; }
+    
+    private int _userID;
+    private string _userEmail;
+    private string _selectedExam;
+    private TimeSpan? _selectedTime;
+    private bool _checkIfHasBookedExam;
+    private string _examRoomName;
+    private string _numberOfSeats;
+    private string _studentStatus;
+    private int _daysTillExam;
+    //Constants
+    private const string _localStorageUserId = "proctorID";
+    private const string _navigationToLogin = "/";
+    private const string _emailError = "Email not found";
+    private string _userRole;
+    
+    private bool _checked3 = false;
+    private List<Specialization> specializations = new();
+    private Specialization selectedSpecialization;
+    
+    private string Email { get; set; }
+    private string Prenumele { get; set; }
+    private string Numele { get; set; }
+    private string Facultatea { get; set; }
+    private string Anul { get; set; }
+    private string Grupa { get; set; }
+    private int Cheater = 0;
+    private string message = "";  
+    private int alert = 0;
+    private int proctorID;
+    private bool isLoading = false;
+    
+    
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
+        specializations = await DbContext.Specializations.ToListAsync();
+        // Check if user is a student or if no role is set.
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Student")
+        {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+        _userID = await LocalStorage.GetItemAsync<int>(_localStorageUserId);
+        // await LocalStorage.SetItemAsync("selectedDate", _selectedDate.Value);
+        if (_userID == -1) // or another value that represents "no ID"
+        {
+            NavManager.NavigateTo("/loginAdmin");
+            return;
+        }
+
+        var proctor = await ProctorService.GetProctorById(_userID);
+        _userEmail = proctor?.Email ?? _emailError;
+    }
+    private async Task<IEnumerable<Specialization>> SearchSpecializations(string value)
+    {
+
+        await Task.Delay(5);
+
+
+        if (string.IsNullOrEmpty(value))
+            return specializations;
+
+
+        return specializations.Where(s => s.SpecializationName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+    
+    private static string ComputeSha256Hash(string rawData)
+    {
+    // Create a SHA256   
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+    // ComputeHash - returns byte array  
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+
+    // Convert byte array to a string   
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
+    }
+
+    private async Task SubmitForm()
+    {
+        try
+        {
+            message = string.Empty; 
+            alert = 1; 
+
+
+            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Numele) || string.IsNullOrWhiteSpace(Prenumele) || string.IsNullOrWhiteSpace(Facultatea) || selectedSpecialization == null || string.IsNullOrWhiteSpace(Anul) || string.IsNullOrWhiteSpace(Grupa))
+            {
+                message = "All fields are required!";
+                return;
+            }
+            
+            // Check if the user with the provided email already exists
+            var existingUser = await DbContext.Studentis.FirstOrDefaultAsync(s => s.Email == Email);
+            if (existingUser != null)
+            {
+                message = "Account with the provided email already exists!";
+                return;
+            }
+
+            // Create a new student record. Do not set the StudentID.
+            Studenti newStudent = new Studenti
+                {
+                    Email = Email,
+                    
+                    FirstName = Prenumele,
+                    LastName = Numele,
+                    Password = ComputeSha256Hash($"{Prenumele.Substring(0,1)}{Numele}&{Prenumele.Length}_{Numele.Length}"),
+                    Faculty = Facultatea,
+                    SpecializationId = selectedSpecialization.SpecializationId,
+                    ProctorId = _userID,
+                    Year = Anul,
+                    Groupa = Grupa,
+                    Blind = 1,
+                    Cheater = 0
+        };
+
+            // Add the new student to the database
+            DbContext.Studentis.Add(newStudent);
+            await DbContext.SaveChangesAsync();
+            await LocalStorage.SetItemAsync("userID", newStudent.StudnetId);
+            await LocalStorage.SetItemAsync("StudentsProctorId", newStudent.ProctorId);
+
+            message = "Successfully registered! Redirecting...";
+            alert = 0; 
+            NavigationManager.NavigateTo("/ia-admin");
+        }
+        catch (Exception ex)
+        {
+            
+            Console.WriteLine(ex.Message); 
+            message = "An error occurred while registering! Please try again later.";
+        }
+    }
+    
+    private async Task OnRegisterButtonClick()
+    {
+        isLoading = true;  // Stop loading
+        await SubmitForm();  
+        HandleSnackbar();  
+        isLoading = false;  // Stop loading
+    }
+    
+    
+    private void HandleSnackbar()
+    {
+        if (alert == 0)
+        {
+            Snackbar.Add(message, Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(message, Severity.Error);
+        }
+    }
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync(_localStorageUserId, -1);
+        NavManager.NavigateTo(_navigationToLogin);
+    }
+}

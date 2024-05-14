@@ -3,6 +3,8 @@
 @using Microsoft.EntityFrameworkCore
 @using Programming_Examination_Platform.Model
 @using Task = System.Threading.Tasks.Task
+@using System.Security.Cryptography
+@using System.Text
 @inject JavaExamContext DbContext
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
@@ -71,7 +73,7 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
     private string _message = "";  // Variable to hold messages to display
     private int _alert;
     private bool _isLoading = false;
-    
+    private string HashCheck = "";
     
     async Task HandleLogin()
     {
@@ -79,10 +81,10 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
         {
             // Increase the command timeout to 60 seconds.
             //DbContext.Database.SetCommandTimeout(60);
-
+            HashCheck = ComputeSha256Hash(_password);
             var student = await DbContext.Studentis
               .AsNoTracking()
-               .Where(s => s.Email.Equals(_email) && s.Password.Equals(_password))
+               .Where(s => s.Email.Equals(_email) && s.Password.Equals(HashCheck))
                 .FirstOrDefaultAsync();
                 
             if (student != null)
@@ -117,6 +119,24 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
         _isLoading = false;  // Stop loading
     }
 
+    private static string ComputeSha256Hash(string rawData)
+    {
+    // Create a SHA256   
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+    // ComputeHash - returns byte array  
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+
+    // Convert byte array to a string   
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
+    }
+    
     private void HandleSnackbar()
     {
         if (_alert == 0)

@@ -124,7 +124,7 @@
     }
     var student = await StudentService.GetStudentById(userID);
     userEmail = student?.Email ?? "Email not found";
-    var studentTasks = await StudentService.GetStudentsWithTasksAboveGrade(5);
+    var studentTasks = await StudentService.GetStudentsWithTasksAboveGrade(4);
     int place = 1;
     foreach (var studentTask in studentTasks.OrderByDescending(s => s.FinalGrade))
     {

@@ -25,7 +25,13 @@ public partial class Studenti
 
     public string Groupa { get; set; } = null!;
 
+    public int Cheater { get; set; }
+
+    public int Blind { get; set; }
+
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+    public virtual ICollection<LoginCodesBlind> LoginCodesBlinds { get; set; } = new List<LoginCodesBlind>();
 
     public virtual Proctor Proctor { get; set; } = null!;
 
