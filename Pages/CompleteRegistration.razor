@@ -1,0 +1,296 @@
+﻿@page "/complete-registration"
+@layout LoginLayout
+@using Programming_Examination_Platform.Model
+@using Microsoft.EntityFrameworkCore
+@using Task = System.Threading.Tasks.Task
+@using System.Security.Cryptography
+@using System.Text
+@using System.Runtime.CompilerServices
+@inject JavaExamContext DbContext
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<br /><br />
+<br />
+<style>
+    body {
+        background: rgb(255,255,255);
+        background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.22172619047619047) 100%);
+    }
+
+    .center {
+        margin: auto;
+        width: 80%;
+        padding: 20px;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 1000;
+    }
+
+    .custom-card {
+        width: 100%;
+        max-width: 800px;
+        padding: 10px;
+    }
+
+    .custom-card-content {
+        padding: 20px;
+    }
+
+    .svg-icon {
+        width: 25px;
+        height: 25px;
+    }
+</style>
+
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+    <div style="padding: 10px; display: flex; align-items: center;">
+        <img src="images/header.png" style="max-height: 50px; max-width: 201px;" />
+    </div>
+</MudAppBar>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<MudStack Spacing="15" Row="true" Justify="Justify.Center">
+    @if (isLoading)
+    {
+        <div class="loading-overlay">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.h5">Please wait while we are creating your new account...</MudText>
+        </div>
+    }
+    <MudSpacer/>
+    <MudCard Class="custom-card">
+        <MudCardMedia Image="images/registerBanner.png" Height="200" />
+        <MudCardContent Class="custom-card-content">
+            <MudText Typo="Typo.h4">Register</MudText>
+            <br/><br/>
+            <MudText Typo="Typo.h6">Welcome, @Email ! <br/> Please complete the registration process, in order to continue</MudText>
+            <MudTextField T="string" Label="Phone Number" @bind-Value="@PhoneNumber" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" AdornmentColor="Color.Primary"/>
+            <MudTextField T="string" Label="Last name" HelperText="Last name" @bind-Value="@Numele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
+            <MudTextField T="string" Label="First name" HelperText="First name" @bind-Value="@Prenumele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
+            <MudTextField T="string" Label="Faculty" @bind-Value="@Facultatea" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.School" AdornmentColor="Color.Primary"/>
+            <MudAutocomplete T="Specialization" Label="Specialization" @bind-Value="selectedSpecialization" Items="specializations" ToStringFunc="@(x => x.SpecializationName)" SearchFunc="@SearchSpecializations" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Book" AdornmentColor="Color.Primary"></MudAutocomplete>
+            <MudAutocomplete T="Proctor"
+                             Label="Proctor Email"
+                             @bind-Value="selectedProctor"
+                             Items="proctors"
+                             ToStringFunc="@(x => x.Email)"
+                             SearchFunc="@SearchProctorsByEmail"
+                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.SupervisedUserCircle" AdornmentColor="Color.Primary">
+            </MudAutocomplete>
+            <MudTextField T="string" Label="Year" HelperText="" @bind-Value="@Anul" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled._2k" AdornmentColor="Color.Primary"/>
+            <MudTextField T="string" Label="Group" HelperText="" @bind-Value="@Grupa" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleAlt" AdornmentColor="Color.Primary"/>
+            <br/><br/>
+            <MudAlert Icon="@Icons.Material.Filled.Accessibility" Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center">Accessibility Zone</MudAlert>
+            <MudSwitch Size="Size.Large" @bind-Checked="@blindCheck"
+                       ThumbIcon="@(blindCheck == true ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                       ThumbIconColor="@(blindCheck == true ? Color.Primary : Color.Default)">
+                Blind Student? <b> @(blindCheck ? "Yes" : "No")</b>
+            </MudSwitch>
+
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PersonAddAlt1" FullWidth="true" Color="Color.Primary" OnClick="@OnRegisterButtonClick">Continue</MudButton>
+            <br/><br/>
+        </MudCardContent>
+    </MudCard>
+    <MudSpacer/>
+</MudStack>
+<br />
+<br />
+<br />
+@code {
+    private bool blindCheck { get; set; }
+    private bool _checked3 = false;
+    private List<Specialization> specializations = new();
+    private Specialization selectedSpecialization;
+    private List<Proctor> proctors = new();
+    private Proctor selectedProctor;
+
+    private string Email { get; set; }
+    private string Parola { get; set; }
+    private string RepeatPassword { get; set; }
+    private string Prenumele { get; set; }
+    private string Numele { get; set; }
+    private string Facultatea { get; set; }
+    private string Anul { get; set; }
+    private string Grupa { get; set; }
+    private int Cheater = 0;
+    private bool PasswordsMatch => Parola == RepeatPassword;
+    private string message = "";
+    private int alert = 0;
+    private int proctorID;
+    private bool isLoading = false;
+    private string PhoneNumber { get; set; }
+    private bool PhoneNumberVerified { get; set; } = false;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Email = await LocalStorage.GetItemAsync<string>("userEmail");
+        specializations = await DbContext.Specializations.ToListAsync();
+        proctors = await DbContext.Proctors.ToListAsync();
+    }
+
+   
+
+    private static string ComputeSha256Hash(string rawData)
+    {
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; bytes.Length > i; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
+    }
+
+    private async Task<IEnumerable<Specialization>> SearchSpecializations(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return specializations;
+        return specializations.Where(s => s.SpecializationName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task<IEnumerable<Proctor>> SearchProctorsByEmail(string value)
+    {
+        await Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return proctors;
+        return proctors.Where(p => p.Email.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+private async Task SubmitForm()
+{
+    try
+    {
+        message = string.Empty;
+        alert = 1;
+
+        if (string.IsNullOrWhiteSpace(Numele) || string.IsNullOrWhiteSpace(Prenumele) || string.IsNullOrWhiteSpace(Facultatea) || string.IsNullOrWhiteSpace(PhoneNumber) || selectedSpecialization == null || string.IsNullOrWhiteSpace(Anul) || string.IsNullOrWhiteSpace(Grupa))
+        {
+            message = "All fields are required!";
+            return;
+        }
+
+        var existingUser = await DbContext.Studentis.FirstOrDefaultAsync(s => s.Email == Email);
+        if (existingUser != null)
+        {
+            message = "Account with the provided email already exists!";
+            return;
+        }
+
+        var textbeltService = new TextbeltService();
+
+        string verificationCode = GenerateVerificationCode();
+
+        // Replace "your_actual_api_key_here" with your actual Textbelt API key
+        await textbeltService.SendSmsAsync(PhoneNumber, $"Your PeP verification code is: {verificationCode}.", "9d7e41689b9ba30ac7aed19c8198ac24a1f63be8Smxxwb3hIaVWlBGxbeW9gcsa3");
+
+        // Store the verification code temporarily
+        await LocalStorage.SetItemAsync("PhoneVerificationCode", verificationCode);
+
+        // Prompt user to enter the verification code sent via SMS
+        bool codeVerified = await VerifyPhoneNumber(verificationCode);
+        if (!codeVerified)
+        {
+            message = "Phone number verification failed!";
+            return;
+        }
+
+        // If phone number is verified, continue with registration
+        Studenti newStudent = new Studenti
+        {
+            Email = Email,
+            Password = ComputeSha256Hash("Pa$$k3yS3cur3dP@$$w0rd"),
+            FirstName = Prenumele,
+            LastName = Numele,
+            Faculty = Facultatea,
+            SpecializationId = selectedSpecialization.SpecializationId,
+            ProctorId = selectedProctor.ProctorId,
+            Year = Anul,
+            Groupa = Grupa,
+            Blind = blindCheck ? 1 : 0,
+            Cheater = 0,
+            PhoneNumber = PhoneNumber,
+            PhoneNumberVerified = "1" // Mark the phone number as verified
+        };
+
+        DbContext.Studentis.Add(newStudent);
+        await DbContext.SaveChangesAsync();
+        await LocalStorage.SetItemAsync("userID", newStudent.StudnetId);
+        await LocalStorage.SetItemAsync("StudentsProctorId", newStudent.ProctorId);
+
+        message = "Successfully registered! Redirecting...";
+        alert = 0;
+        NavigationManager.NavigateTo("/indexStudent");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+        message = "An error occurred while registering! Please try again later.";
+    }
+}
+
+
+
+
+private async Task<bool> VerifyPhoneNumber(string verificationCode)
+{
+    // Prompt user to enter the verification code sent via SMS
+    string userInputCode = await PromptUserForCode();
+
+    return verificationCode == userInputCode;
+}
+
+    private string GenerateVerificationCode()
+    {
+        var random = new Random();
+        return random.Next(100000, 999999).ToString();
+    }
+    private async Task<string> PromptUserForCode()
+    {
+    // You can replace this with a proper dialog or UI prompt in your Blazor application.
+        var result = await JSRuntime.InvokeAsync<string>("prompt", "Enter the verification code sent to your phone:");
+        return result;
+    }
+
+    private async Task OnRegisterButtonClick()
+    {
+        isLoading = true;
+        await SubmitForm();
+        HandleSnackbar();
+        isLoading = false;
+    }
+
+    private void HandleSnackbar()
+    {
+        if (alert == 0)
+        {
+            Snackbar.Add(message, Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(message, Severity.Error);
+        }
+    }
+}

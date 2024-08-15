@@ -19,6 +19,8 @@ public partial class Booking
 
     public virtual ExamSchedule? ExamSchedule { get; set; }
 
+    public virtual ICollection<QuestionsBlind> QuestionsBlinds { get; set; } = new List<QuestionsBlind>();
+
     public virtual Studenti Student { get; set; } = null!;
 
     public virtual ICollection<Task> Tasks { get; set; } = new List<Task>();

@@ -27,5 +27,7 @@ public partial class Exam
 
     public virtual ICollection<ExamSchedule> ExamSchedules { get; set; } = new List<ExamSchedule>();
 
+    public virtual ICollection<QuestionsBlind> QuestionsBlinds { get; set; } = new List<QuestionsBlind>();
+
     public virtual ICollection<Task> Tasks { get; set; } = new List<Task>();
 }

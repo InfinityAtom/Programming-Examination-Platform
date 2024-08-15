@@ -17,7 +17,7 @@ public partial class Proctor
 
     public virtual ICollection<ExamSchedule> ExamSchedules { get; set; } = new List<ExamSchedule>();
 
-    public virtual ICollection<Studenti> Studentis { get; set; } = new List<Studenti>();
+    public virtual ICollection<QuestionsBlind> QuestionsBlinds { get; set; } = new List<QuestionsBlind>();
 
     public virtual ICollection<Task> Tasks { get; set; } = new List<Task>();
 }

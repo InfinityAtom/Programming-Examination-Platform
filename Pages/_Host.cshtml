@@ -5,5 +5,12 @@
     Layout = "_Layout";
     
 }
+<script>
+    function createCredential(publicKey) {
+        publicKey.challenge = Uint8Array.from(atob(publicKey.challenge), c => c.charCodeAt(0));
+        publicKey.user.id = Uint8Array.from(atob(publicKey.user.id), c => c.charCodeAt(0));
+        return navigator.credentials.create({ publicKey: publicKey });
+    }
+</script>
 <component type="typeof(App)" render-mode="Server" />
 

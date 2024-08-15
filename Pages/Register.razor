@@ -5,59 +5,98 @@
 @using Task = System.Threading.Tasks.Task
 @using System.Security.Cryptography
 @using System.Text
+@using System.Runtime.CompilerServices
+@using System.Net.Mail
+@using System.Net
 @inject JavaExamContext DbContext
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
-<br/><br/>
+
+<br /><br />
+<br />
 <style>
-body
-{
-background: rgb(255,255,255);
-background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.22172619047619047) 100%);
-}
-.center
-{
-      margin: auto;
-      width: 80%;
-      padding: 20px;
-}     
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8); /* White background with 70% opacity */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    z-index: 1000; /* Ensure it's above other content */
+    body {
+        background: rgb(255,255,255);
+        background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.22172619047619047) 100%);
+    }
+
+    .center {
+        margin: auto;
+        width: 80%;
+        padding: 20px;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 1000;
+    }
+
+    .custom-card {
+        width: 100%;
+        max-width: 800px;
+        padding: 10px;
+    }
+
+    .custom-card-content {
+        padding: 20px;
+    }
+
+    .svg-icon {
+        width: 25px;
+        height: 25px;
     }
 </style>
+
 <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
     <div style="padding: 10px; display: flex; align-items: center;">
-        <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
+        <img src="images/header.png" style="max-height: 50px; max-width: 201px;" />
     </div>
 </MudAppBar>
-<br/><br/><br/><br/><br/><br/><br/>
-<MudStack Spacing="3" Row="true">
-     @if (isLoading)
-        {
-            <div class="loading-overlay">
-                <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
-                <MudText Typo="Typo.h5">Please wait while we are creating your new account...</MudText>
-            </div>
-        }
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<MudStack Spacing="15" Row="true" Justify="Justify.Center">
+    @if (isLoading)
+    {
+        <div class="loading-overlay">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.h5">Please wait while we are creating your new account...</MudText>
+        </div>
+    }
     <MudSpacer/>
-    <MudCard>
-        <MudCardMedia Image="images/registerBanner.png" Height="200"/>
-        <MudCardContent>
-            <MudText Typo="Typo.h5">Register</MudText>
-            <MudText Typo="Typo.caption">Create an account</MudText>
+    <MudCard Class="custom-card">
+        <MudCardMedia Image="images/registerBanner.png" Height="200" />
+        <MudCardContent Class="custom-card-content">
+            <MudText Typo="Typo.h4">Register</MudText>
+            <MudText Typo="Typo.h6">Fast register using a Passkey</MudText>
+            <MudTextField T="string" Label="Email" FullWidth="true" @bind-Value="user.Email" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" AdornmentColor="Color.Primary"/>
+            <br/>
+
+            <MudButton Variant="Variant.Filled" FullWidth="true" Color="Color.Primary" OnClick="RegisterPasskey">
+                <img src="images/Picture2.svg" class="svg-icon" style="margin-right: 8px;"/>
+                Register with a Passkey
+            </MudButton>
+
+            <br/><br/>
+            <MudText Typo="Typo.h6">Or create an account manually</MudText>
             <MudTextField T="string" Label="Email" @bind-Value="@Email" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" AdornmentColor="Color.Primary"/>
             <MudTextField Label="Password" @bind-Value="@Parola" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary"></MudTextField>
+            <MudTextField T="string" Label="Phone Number" @bind-Value="@PhoneNumber" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" AdornmentColor="Color.Primary"/>
             <MudTextField Label="Repeat password" @bind-Value="@RepeatPassword" InputType="InputType.Password" Error="@(!PasswordsMatch)" ErrorText="Passwords do not match" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary"></MudTextField>
             <MudTextField T="string" Label="Last name" HelperText="Last name" @bind-Value="@Numele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
             <MudTextField T="string" Label="First name" HelperText="First name" @bind-Value="@Prenumele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
@@ -78,20 +117,22 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
             <MudSwitch Size="Size.Large" @bind-Checked="@blindCheck"
                        ThumbIcon="@(blindCheck == true ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
                        ThumbIconColor="@(blindCheck == true ? Color.Primary : Color.Default)">
-                Blind Student? <b>  @(blindCheck ? "Yes" : "No")</b>
+                Blind Student? <b> @(blindCheck ? "Yes" : "No")</b>
             </MudSwitch>
-            
+
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PersonAddAlt1" FullWidth="true" Color="Color.Primary" OnClick="@OnRegisterButtonClick">Register</MudButton>
+            <br/><br/>
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Login" FullWidth="true" Color="Color.Primary" Href="/loginStudent">Login as student</MudButton>
+            <br/><br/>
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Login" FullWidth="true" Color="Color.Primary" Href="/loginAdmin">Login as Proctor</MudButton>
+            <br/><br/>
         </MudCardContent>
-        <MudCardActions>
-            <MudButton OnClick="@OnRegisterButtonClick">Register</MudButton>
-            <MudNavLink Href="/loginStudent">Or log in as a student</MudNavLink>
-            <br/>
-            <MudNavLink Href="/loginAdmin">Or log in as proctor</MudNavLink>
-        </MudCardActions>
     </MudCard>
     <MudSpacer/>
 </MudStack>
-    <br/><br/><br/>
+<br />
+<br />
+<br />
 @code {
     private bool blindCheck { get; set; }
     private bool _checked3 = false;
@@ -110,67 +151,238 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
     private string Grupa { get; set; }
     private int Cheater = 0;
     private bool PasswordsMatch => Parola == RepeatPassword;
-    private string message = "";  
+    private string message = "";
     private int alert = 0;
     private int proctorID;
     private bool isLoading = false;
+    private User user = new User();
+    private string PhoneNumber { get; set; }
+    private bool PhoneNumberVerified { get; set; } = false;
 
+    
+    private async Task SaveEmail()
+    {
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            Snackbar.Add("Email is required!", Severity.Error);
+            return;
+        }
+
+        await LocalStorage.SetItemAsync("userEmail", user.Email);
+        await JSRuntime.InvokeVoidAsync("registerPasskey");
+    }
+
+    public class User
+    {
+        public string Email { get; set; }
+    }
+    
     protected override async Task OnInitializedAsync()
     {
+        
         specializations = await DbContext.Specializations.ToListAsync();
         proctors = await DbContext.Proctors.ToListAsync();
     }
+
+   private async Task RegisterPasskey()
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            Snackbar.Add("Email is required!", Severity.Error);
+            return;
+        }
+
+        // Save email in LocalStorage
+        await LocalStorage.SetItemAsync("userEmail", user.Email);
+
+        // Generate a 6-digit verification code
+        string verificationCode = GenerateVerificationCode();
+        await LocalStorage.SetItemAsync("verificationCode", verificationCode);
+
+        // Send the verification code via email
+        await SendVerificationCodeEmail(user.Email, verificationCode);
+
+        // Redirect to the confirmation page
+        NavigationManager.NavigateTo("/confirmation-email");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error: {ex.Message}");
+        Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
+    }
+}
+
+private string GenerateVerificationCode()
+{
+    var random = new Random();
+    return random.Next(100000, 999999).ToString();
+}
+
+public async System.Threading.Tasks.Task SendVerificationCodeEmail(string email, string code)
+{
+    string verificationCode = GenerateVerificationCode(); // This is your generated 6-digit code
+    await LocalStorage.SetItemAsync("verificationCode", verificationCode);
+    try
+    {
+        var fromAddress = new MailAddress("java.exam@infinity-atom.ro", "Programming Examination Platform");
+        var toAddress = new MailAddress(email);
+        string subject = "Your Verification Code";
+        string headerImageBase64 = Convert.ToBase64String(System.IO.File.ReadAllBytes("wwwroot/images/header.png"));
+string headerImageSrc = $"data:image/png;base64,{headerImageBase64}";
+
+string body = $@"
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+        }}
+        .header {{
+            background-color: rgba(89,74,226,1);
+            padding: 10px;
+            text-align: center;
+            color: white;
+        }}
+        .header img {{
+            max-width: 320px; /* Smaller size for higher quality rendering */
+            height: auto;
+        }}
+        .content {{
+            padding: 20px;
+            line-height: 1.6;
+        }}
+        .content h1 {{
+            color: #333333;
+        }}
+        .content p {{
+            color: #666666;
+        }}
+        .code-box {{
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: #333333;
+        }}
+        .footer {{
+            background-color: #333333;
+            padding: 10px;
+            text-align: center;
+            color: white;
+            font-size: 12px;
+        }}
+        .footer a {{
+            color: #ffffff;
+            text-decoration: none;
+        }}
+        .footer a:hover {{
+            text-decoration: underline;
+        }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <img src='{headerImageSrc}' alt='Company Logo'>
+        </div>
+        <div class='content'>
+            <h1>Email Verification</h1>
+            <p>Hello,</p>
+            <p>Thank you for registering with the Programming Examination Platform. To complete your registration, please enter the following 6-digit code in the application:</p>
+            <div class='code-box'>{verificationCode}</div>
+            <p>This code will expire in 10 minutes.</p>
+            <p>If you did not request this code, please ignore this email.</p>
+        </div>
+        <div class='footer'>
+            <p>&copy; 2024 Infinity Atom. All rights reserved.</p>
+            <p><a href='#'>Privacy Policy</a> | <a href='#'>Terms of Service</a></p>
+        </div>
+    </div>
+</body>
+</html>";
+
+        var smtp = new SmtpClient
+        {
+            Host = "mail.infinity-atom.ro",
+            Port = 587,
+            EnableSsl = true,
+            DeliveryMethod = SmtpDeliveryMethod.Network,
+            UseDefaultCredentials = false,
+            Credentials = new NetworkCredential(fromAddress.Address, "p@SSWORD20caractereabc1")
+        };
+
+        using (var message = new MailMessage(fromAddress, toAddress))
+        {
+            message.Subject = subject;
+            message.Body = body;
+            message.IsBodyHtml = true;
+            await smtp.SendMailAsync(message);
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+        Snackbar.Add($"An error occurred while sending the email: {ex.Message}", Severity.Error);
+    }
+}
+
+
     private static string ComputeSha256Hash(string rawData)
     {
-    // Create a SHA256   
         using (SHA256 sha256Hash = SHA256.Create())
         {
-    // ComputeHash - returns byte array  
             byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
-
-    // Convert byte array to a string   
             StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < bytes.Length; i++)
+            for (int i = 0; bytes.Length > i; i++)
             {
                 builder.Append(bytes[i].ToString("x2"));
             }
             return builder.ToString();
         }
     }
-    
-    
+
     private async Task<IEnumerable<Specialization>> SearchSpecializations(string value)
     {
-
         await Task.Delay(5);
-
-
         if (string.IsNullOrEmpty(value))
             return specializations;
-
-
         return specializations.Where(s => s.SpecializationName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
-
 
     private async Task<IEnumerable<Proctor>> SearchProctorsByEmail(string value)
     {
         await Task.Delay(5);
-
         if (string.IsNullOrEmpty(value))
             return proctors;
-
         return proctors.Where(p => p.Email.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
-
 
     private async Task SubmitForm()
     {
         try
         {
-            message = string.Empty; 
-            alert = 1; 
-
+            message = string.Empty;
+            alert = 1;
 
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Parola) || string.IsNullOrWhiteSpace(RepeatPassword) || string.IsNullOrWhiteSpace(Numele) || string.IsNullOrWhiteSpace(Prenumele) || string.IsNullOrWhiteSpace(Facultatea) || selectedSpecialization == null || string.IsNullOrWhiteSpace(Anul) || string.IsNullOrWhiteSpace(Grupa))
             {
@@ -178,14 +390,12 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
                 return;
             }
 
-            // Validate passwords match
             if (!PasswordsMatch)
             {
                 message = "Passwords do not match!";
                 return;
             }
 
-            // Check if the user with the provided email already exists
             var existingUser = await DbContext.Studentis.FirstOrDefaultAsync(s => s.Email == Email);
             if (existingUser != null)
             {
@@ -193,49 +403,45 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
                 return;
             }
 
-            // Create a new student record. Do not set the StudentID.
             Studenti newStudent = new Studenti
-                {
-                    Email = Email,
-                    Password = ComputeSha256Hash(Parola),
-                    FirstName = Prenumele,
-                    LastName = Numele,
-                    Faculty = Facultatea,
-                    SpecializationId = selectedSpecialization.SpecializationId,
-                    ProctorId = selectedProctor.ProctorId,
-                    Year = Anul,
-                    Groupa = Grupa,
-                    Blind = blindCheck ? 1 : 0,
-                    Cheater = 0
-        };
+            {
+                Email = Email,
+                Password = ComputeSha256Hash(Parola),
+                FirstName = Prenumele,
+                LastName = Numele,
+                Faculty = Facultatea,
+                SpecializationId = selectedSpecialization.SpecializationId,
+                ProctorId = selectedProctor.ProctorId,
+                Year = Anul,
+                Groupa = Grupa,
+                Blind = blindCheck ? 1 : 0,
+                Cheater = 0
+            };
 
-            // Add the new student to the database
             DbContext.Studentis.Add(newStudent);
             await DbContext.SaveChangesAsync();
             await LocalStorage.SetItemAsync("userID", newStudent.StudnetId);
             await LocalStorage.SetItemAsync("StudentsProctorId", newStudent.ProctorId);
 
             message = "Successfully registered! Redirecting...";
-            alert = 0; 
+            alert = 0;
             NavigationManager.NavigateTo("/indexStudent");
         }
         catch (Exception ex)
         {
-            
-            Console.WriteLine(ex.Message); 
+            Console.WriteLine(ex.Message);
             message = "An error occurred while registering! Please try again later.";
         }
     }
-    
+
     private async Task OnRegisterButtonClick()
     {
-        isLoading = true;  // Stop loading
-        await SubmitForm();  
-        HandleSnackbar();  
-        isLoading = false;  // Stop loading
+        isLoading = true;
+        await SubmitForm();
+        HandleSnackbar();
+        isLoading = false;
     }
-    
-    
+
     private void HandleSnackbar()
     {
         if (alert == 0)

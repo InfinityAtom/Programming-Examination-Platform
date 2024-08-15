@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Fido2NetLib;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,20 @@ builder.Services.AddMudServices(config =>
 });
 builder.Services.AddScoped<StudentService>();
 builder.Services.AddScoped<ProctorService>();
+void ConfigureServices(IServiceCollection services)
+{
+    services.AddRazorPages();
+    services.AddServerSideBlazor();
+    
+    var fido2Configuration = new Fido2Configuration
+    {
+        ServerDomain = "localhost",
+        ServerName = "Programming Examination Platform",
+        Origin = "https://localhost:7037" // Ensure this matches your localhost origin
+    };
+    services.AddSingleton(fido2Configuration);
+    services.AddSingleton<Fido2>(sp => new Fido2(fido2Configuration));
+}
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

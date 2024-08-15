@@ -1,5 +1,5 @@
-﻿@layout LoginLayout
-@page "/loginStudent"
+﻿@page "/loginStudent"
+@layout LoginLayout
 @using Microsoft.EntityFrameworkCore
 @using Programming_Examination_Platform.Model
 @using Task = System.Threading.Tasks.Task
@@ -9,39 +9,57 @@
 @inject NavigationManager NavigationManager
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+<title>Log In</title>
 <style>
-body
-{
-background: rgb(255,255,255);
-background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.22172619047619047) 100%);
-}
-.center
-{
-      margin: auto;
-      width: 80%;
-      padding: 20px;
-}     
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8); /* White background with 70% opacity */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    z-index: 1000; /* Ensure it's above other content */
-}
+    body {
+        background: rgb(255,255,255);
+        background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.22172619047619047) 100%);
+    }
+
+    .center {
+        margin: auto;
+        width: 80%;
+        padding: 20px;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 1000;
+    }
+
+    .custom-card {
+        width: 100%;
+        max-width: 800px;
+        padding: 10px;
+    }
+
+    .custom-card-content {
+        padding: 20px;
+    }
+
+    .svg-icon {
+        width: 25px;
+        height: 25px;
+    }
 </style>
+
 <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
     <div style="padding: 10px; display: flex; align-items: center;">
-        <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
+        <img src="images/header.png" style="max-height: 50px; max-width: 201px;" />
     </div>
 </MudAppBar>
-<br/><br/><br/><br/><br/><br/><br/>
-<MudStack Spacing="3" Row="true">
+<br /><br /><br /><br /><br /><br /><br />
+<MudStack Spacing="15" Row="true" Justify="Justify.Center">
     @if (_isLoading)
     {
         <div class="loading-overlay">
@@ -49,24 +67,34 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
             <MudText Typo="Typo.h5">Please wait while we are connecting you to PeP</MudText>
         </div>
     }
-    <MudSpacer/>
-    <MudCard>
-        <MudCardMedia Image="images/loginBanner.png" Height="200"/>
-        <MudCardContent>
-            <MudText Typo="Typo.h5">Log In</MudText>
-            <MudText Typo="Typo.caption">Enter your email and password below to log in to the system!</MudText>
-            <MudTextField Label="Email" @bind-Value="_email" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" AdornmentColor="Color.Primary"/>
-            <MudTextField Label="Password" @bind-Value="_password" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary"/>
+    <MudSpacer />
+    <MudCard Class="custom-card">
+        <MudCardMedia Image="images/loginBanner.png" Height="200" />
+        <MudCardContent Class="custom-card-content">
+            <MudText Typo="Typo.h4">Log In</MudText>
+            <MudText Typo="Typo.h6">Fast log in using a Passkey</MudText>
+            <MudButton Variant="Variant.Filled" FullWidth="true" Color="Color.Primary" OnClick="LogInWithPasskey">
+                <img src="images/Picture2.svg" class="svg-icon" style="margin-right: 8px;" />
+                Login with Passkey
+            </MudButton>
+
+            <br /><br />
+            <MudText Typo="Typo.h6">Or log in manually</MudText>
+            <MudTextField Label="Email" @bind-Value="_email" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" AdornmentColor="Color.Primary" />
+            <MudTextField Label="Password" @bind-Value="_password" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary" />
+            <br /><br />
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Login" FullWidth="true" Color="Color.Primary" OnClick="@OnLoginButtonClick">Log In</MudButton>
+            <br /><br />
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.PersonAddAlt1" FullWidth="true" Color="Color.Primary" Href="/register">Register</MudButton>
+            <br /><br />
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Login" FullWidth="true" Color="Color.Primary" Href="/loginAdmin">Login as Proctor</MudButton>
+            <br /><br />
         </MudCardContent>
-        <MudCardActions>
-            <MudButton OnClick="OnLoginButtonClick">Log In</MudButton>
-            <MudNavLink Href="/register">Or create a new account</MudNavLink>
-            <MudNavLink Href="/loginAdmin">Or log in as proctor</MudNavLink>
-        </MudCardActions>
     </MudCard>
-    <MudSpacer/>
+    <MudSpacer />
 </MudStack>
-<br/><br/><br/>
+<br /><br /><br />
+
 @code {
     private string _email = "";
     private string _password = "";
@@ -74,60 +102,88 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
     private int _alert;
     private bool _isLoading = false;
     private string HashCheck = "";
-    
-    async Task HandleLogin()
+    private async Task LogInWithPasskey()
     {
         try
         {
-            // Increase the command timeout to 60 seconds.
-            //DbContext.Database.SetCommandTimeout(60);
-            HashCheck = ComputeSha256Hash(_password);
-            var student = await DbContext.Studentis
-              .AsNoTracking()
-               .Where(s => s.Email.Equals(_email) && s.Password.Equals(HashCheck))
-                .FirstOrDefaultAsync();
-                
+            var assertion = await JSRuntime.InvokeAsync<object>("getAssertion");
+
+            // Extract the email from the assertion and verify it
+            var userEmail = await LocalStorage.GetItemAsync<string>("userEmail");
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                Snackbar.Add("No passkey registered for this device.", Severity.Error);
+                return;
+            }
+
+            var student = await DbContext.Studentis.AsNoTracking().FirstOrDefaultAsync(s => s.Email == userEmail);
             if (student != null)
             {
                 await LocalStorage.SetItemAsync("userID", student.StudnetId);
                 await LocalStorage.SetItemAsync("StudentsProctorId", student.ProctorId);
                 await LocalStorage.SetItemAsync("userRole", "Student");
-                Console.WriteLine($"Logged in user: {_email} with the ID: {student.StudnetId}" );
-                _message = "Successfully logged in! Redirecting...";  // Set the message
+                _message = "Successfully logged in with Passkey! Redirecting...";
                 _alert = 0;
                 NavigationManager.NavigateTo("/indexStudent");
-                
             }
             else
             {
-                _message = "User or password incorrect!";  // Set the message
+                Snackbar.Add("No account associated with this passkey email.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            HashCheck = ComputeSha256Hash(_password);
+            var student = await DbContext.Studentis
+                .AsNoTracking()
+                .Where(s => s.Email.Equals(_email) && s.Password.Equals(HashCheck))
+                .FirstOrDefaultAsync();
+
+            if (student != null)
+            {
+                await LocalStorage.SetItemAsync("userID", student.StudnetId);
+                await LocalStorage.SetItemAsync("StudentsProctorId", student.ProctorId);
+                await LocalStorage.SetItemAsync("userRole", "Student");
+                _message = "Successfully logged in! Redirecting...";
+                _alert = 0;
+                NavigationManager.NavigateTo("/indexStudent");
+            }
+            else
+            {
+                _message = "User or password incorrect!";
                 _alert = 1;
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
-            _message = "An error occurred while trying to log in.";  // Set the message
+            _message = "An error occurred while trying to log in.";
             _alert = 1;
         }
     }
+
     private async Task OnLoginButtonClick()
     {
-        _isLoading = true;  // Start loading
-        await HandleLogin();  // Handle the login
-        HandleSnackbar();  // Then handle the SnackBar
-        _isLoading = false;  // Stop loading
+        _isLoading = true;
+        await HandleLogin();
+        HandleSnackbar();
+        _isLoading = false;
     }
 
     private static string ComputeSha256Hash(string rawData)
     {
-    // Create a SHA256   
         using (SHA256 sha256Hash = SHA256.Create())
         {
-    // ComputeHash - returns byte array  
             byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
-
-    // Convert byte array to a string   
             StringBuilder builder = new StringBuilder();
             for (int i = 0; i < bytes.Length; i++)
             {
@@ -136,7 +192,7 @@ background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.2217261
             return builder.ToString();
         }
     }
-    
+
     private void HandleSnackbar()
     {
         if (_alert == 0)
