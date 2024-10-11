@@ -1,0 +1,38 @@
+﻿@inject NavigationManager NavManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ISnackbar Snackbar
+
+<MudDialog DisableBackdropClick="true" FullWidth="true">
+  <DialogContent>
+    <MudText Typo="Typo.h6">Are you sure you want to log out?</MudText>
+    <MudText Typo="Typo.body1">Select "Log Out" to end your session, or "Stay Connected" to remain logged in.</MudText>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="ConfirmLogout" Color="Color.Error" StartIcon="@Icons.Material.Filled.ExitToApp">Log Out</MudButton>
+    <MudButton OnClick="StayConnected" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Close">Stay Connected</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+  private async Task ConfirmLogout()
+  {
+  // Log out logic, clear user session
+    await LocalStorage.RemoveItemAsync("userID");
+    await LocalStorage.RemoveItemAsync("userEmail");
+    Snackbar.Add("You have been logged out.", Severity.Info);
+
+  // Navigate to the login page
+    NavManager.NavigateTo("/loginStudent");
+
+  // Close the dialog
+    MudDialog.Close(DialogResult.Ok(true));
+  }
+
+  private void StayConnected()
+  {
+  // Close the dialog without logging out
+    NavManager.NavigateTo("/profile");
+  }
+}

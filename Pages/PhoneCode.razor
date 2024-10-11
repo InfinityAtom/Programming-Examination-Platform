@@ -1,0 +1,258 @@
+﻿@page "/confirmation-phone"
+@layout LoginLayout
+@using Programming_Examination_Platform.Model
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Cryptography
+@using System.Text
+@using System.Net.Mail
+@using System.Net
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject JavaExamContext DbContext
+
+<br /><br />
+<br />
+<style>
+    body {
+        background: rgb(255,255,255);
+        background: radial-gradient(circle, rgba(89,74,226,1) 0%, rgba(0,32,96,0.22172619047619047) 100%);
+    }
+
+    .center {
+        margin: auto;
+        width: 80%;
+        padding: 20px;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 1000;
+    }
+
+    .custom-card {
+        width: 100%;
+        max-width: 800px;
+        padding: 10px;
+    }
+
+    .custom-card-content {
+        padding: 20px;
+    }
+
+    .svg-icon {
+        width: 25px;
+        height: 25px;
+    }
+
+    .blur-overlay {
+        filter: blur(2px);
+        pointer-events: none;
+    }
+</style>
+
+<div class="@(_isPageBlurred ? "blur-overlay" : "")">
+    <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+        <div style="padding: 10px; display: flex; align-items: center;">
+            <img src="images/header.png" style="max-height: 50px; max-width: 201px;" />
+        </div>
+    </MudAppBar>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <MudStack Spacing="15" Row="true" Justify="Justify.Center">
+        <MudSpacer/>
+        <MudCard Class="custom-card">
+            <MudCardMedia Image="images/registerBanner.png" Height="200" />
+            <MudCardContent Class="custom-card-content">
+               <MudText Typo="Typo.h4">Phone Number Confirmation</MudText>
+               <MudText Typo="Typo.h6">Enter the 6-digit code sent to your phone number</MudText>
+                <br/>
+               <MudTextField T="string" Label="Verification Code" @bind-Value="_value" MaxLength="6" />
+               <br/><br/>
+                <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.RestartAlt" FullWidth="true" Color="Color.Primary" OnClick="ResendCode" Disabled="@_isResendDisabled">Resend Code</MudButton>
+                <br/><br/>
+               <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.CheckCircle" FullWidth="true" Color="Color.Primary" OnClick="VerifyCode">Verify</MudButton>
+            </MudCardContent>
+        </MudCard>
+        <MudSpacer/>
+    </MudStack>
+</div>
+<br />
+<br />
+<br />
+
+@code {
+    private string _value;
+    private bool _isResendDisabled;
+    private string Email { get; set; }
+    private bool _isPageBlurred = false;
+    private bool isManualAccount = false;
+    
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    {
+        isManualAccount = bool.Parse(await LocalStorage.GetItemAsync<string>("isManualAccount"));
+        Email = await LocalStorage.GetItemAsync<string>("userEmail");
+        if (isManualAccount)
+        {
+            ResendCode();
+        }
+    }
+
+    private async System.Threading.Tasks.Task VerifyCode()
+    {
+        var storedCode = await LocalStorage.GetItemAsync<string>("PhoneVerificationCode");
+
+        if (_value == storedCode)
+        {
+            _isPageBlurred = true; // Blur the page
+            Snackbar.Add("Verification successful!", Severity.Success);
+
+            // Save the user details to the database
+            await SaveUserToDatabase();
+
+            // Log the user in and redirect
+            await LogUserIn();
+        }
+        else
+        {
+            Snackbar.Add("Incorrect verification code.", Severity.Error);
+        }
+    }
+
+  private async System.Threading.Tasks.Task SaveUserToDatabase()
+{
+    try
+    {
+        var passkeyUser = await LocalStorage.GetItemAsync<int>("passkeyUser");
+        
+        // Retrieve and parse the specialization ID
+        int specializationId;
+        if (!int.TryParse(await LocalStorage.GetItemAsync<string>("userSpecializationId"), out specializationId))
+        {
+            Snackbar.Add("Invalid specialization ID.", Severity.Error);
+            return;
+        }
+
+        // Retrieve and parse the proctor ID
+        int proctorId;
+        if (!int.TryParse(await LocalStorage.GetItemAsync<string>("userProctorId"), out proctorId))
+        {
+            Snackbar.Add("Invalid proctor ID.", Severity.Error);
+            return;
+        }
+
+        // Retrieve and parse the blind check value
+        int blindCheck;
+        if (!int.TryParse(await LocalStorage.GetItemAsync<string>("userBlindCheck"), out blindCheck))
+        {
+            Snackbar.Add("Invalid blind check value.", Severity.Error);
+            return;
+        }
+
+        // Create the new student object
+        var newStudent = new Studenti
+        {
+            Email = await LocalStorage.GetItemAsync<string>("userEmail"),
+            Password = await LocalStorage.GetItemAsync<string>("userPassword"),
+            FirstName = await LocalStorage.GetItemAsync<string>("userFirstName"),
+            LastName = await LocalStorage.GetItemAsync<string>("userLastName"),
+            Faculty = await LocalStorage.GetItemAsync<string>("userFaculty"),
+            SpecializationId = specializationId,  // Use parsed value
+            ProctorId = proctorId,  // Use parsed value
+            Year = await LocalStorage.GetItemAsync<string>("userYear"),
+            Groupa = await LocalStorage.GetItemAsync<string>("userGroup"),
+            Blind = blindCheck,  // Use parsed value
+            Passkey = passkeyUser,
+            PhoneNumber = await LocalStorage.GetItemAsync<string>("userPhoneNumber"),
+            PhoneNumberVerified = "1"
+        };
+
+        // Save the new student to the database
+        DbContext.Studentis.Add(newStudent);
+        await DbContext.SaveChangesAsync();
+
+        // Store the new student ID and proctor ID in LocalStorage
+        await LocalStorage.SetItemAsync("userID", newStudent.StudnetId);
+        await LocalStorage.SetItemAsync("StudentsProctorId", newStudent.ProctorId);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error saving user to database: {ex.Message}");
+        Snackbar.Add("An error occurred while saving the user information.", Severity.Error);
+    }
+}
+
+
+    private async System.Threading.Tasks.Task LogUserIn()
+    {
+        // Set up the necessary local storage items to simulate logging in
+        await LocalStorage.SetItemAsync("isAuthenticated", true.ToString());
+        Snackbar.Add("Successfully registered and logged in! Redirecting...", Severity.Success);
+        NavigationManager.NavigateTo("/indexStudent");
+    }
+
+    private async System.Threading.Tasks.Task ResendCode()
+    {
+        _isResendDisabled = true;
+
+        string verificationCode = GenerateVerificationCode();
+        await LocalStorage.SetItemAsync("PhoneVerificationCode", verificationCode);
+        await SendVerificationCodeSMS(verificationCode);
+
+        Snackbar.Add("A new verification code has been sent.", Severity.Info);
+
+        await System.Threading.Tasks.Task.Delay(20000); // Disable resend button for 20 seconds
+        _isResendDisabled = false;
+    }
+
+    private async System.Threading.Tasks.Task SendVerificationCodeSMS(string code)
+    {
+        string fullPhoneNumber = await LocalStorage.GetItemAsync<string>("userPhoneNumber");
+
+        try
+        {
+            var textbeltService = new TextbeltService();
+            await textbeltService.SendSmsAsync(fullPhoneNumber, $"Your PeP verification code is: {code}.", "9d7e41689b9ba30ac7aed19c8198ac24a1f63be8Smxxwb3hIaVWlBGxbeW9gcsa3");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            Snackbar.Add("An error occurred while sending the SMS.", Severity.Error);
+        }
+    }
+
+    private string GenerateVerificationCode()
+    {
+        var random = new Random();
+        return random.Next(100000, 999999).ToString();
+    }
+
+    private static string ComputeSha256Hash(string rawData)
+    {
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
+    }
+}

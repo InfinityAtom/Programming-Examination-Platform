@@ -1,0 +1,29 @@
+﻿@using Programming_Examination_Platform.Services
+@inject StudentService StudentService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@* Create a new component, e.g., `ConfirmDeleteDialog.razor` *@
+<MudDialog DisableBackdropClick="true" FullWidth="true">
+  <DialogContent>
+    <MudText Typo="Typo.h6">Are you sure you want to delete your exam booking?</MudText>
+    <MudText Typo="Typo.body1">Deleting your booking will release your reserved exam slot. This action cannot be undone.</MudText>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="ConfirmDelete" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete">Delete Booking</MudButton>
+    <MudButton OnClick="CancelDelete" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Close">Cancel</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+  private async void ConfirmDelete()
+  {
+    MudDialog.Close(DialogResult.Ok(true));
+
+  }
+
+  private void CancelDelete()
+  {
+    MudDialog.Close(DialogResult.Cancel());
+  }
+}

@@ -1,0 +1,145 @@
+﻿@page "/profile"
+@using Programming_Examination_Platform.Services
+@using Programming_Examination_Platform.Model
+@using Task = System.Threading.Tasks.Task
+@inject NavigationManager NavManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject StudentService StudentService
+@inject IDialogService DialogService
+<PageTitle>Profile</PageTitle>
+
+<MudLayout>
+    <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" Edge="Edge.Start" OnClick="@BackToDashboard" />
+        <MudText Typo="Typo.h6">Profile</MudText>
+    </MudAppBar>
+
+    <MudMainContent Class="p-4">
+        <MudContainer MaxWidth="MaxWidth.Medium">
+            @if (_IsLoading)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Medium" Indeterminate="true" />
+            }
+            else if (_Student != null)
+            {
+                <br/><br/>
+                <!-- Profile Image, Email, and Description -->
+                <MudPaper Elevation="3" Class="p-4 mb-4 text-center">
+                    <MudImage Src="images/default-user-icon.jpg" Alt="User Profile Picture" Class="profile-img" />
+                    <MudText Typo="Typo.h4" Class="mt-3">@_Student.Email</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="text-secondary">Your registered email is your username on this platform.</MudText>
+                </MudPaper>
+
+                <!-- Personal Information Section -->
+                <MudPaper Elevation="3" Class="p-4 mb-4">
+                    <MudText Typo="Typo.h5" Class="mb-2"><MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium"/> Personal Information</MudText>
+                    <MudDivider Class="mb-3" />
+                    <MudText Typo="Typo.body1"><strong><MudIcon Icon="@Icons.Material.Filled.Person" /> Name:</strong> @_Student.FirstName @_Student.LastName</MudText>
+                    <MudText Typo="Typo.body1"><MudIcon Icon="@Icons.Material.Filled.Phone" /> <strong>Phone Number:</strong> @_Student.PhoneNumber</MudText>
+                    <MudButton StartIcon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3" OnClick="EditProfile">Edit Profile</MudButton>
+                </MudPaper>
+
+                <!-- Account Details Section -->
+                <MudPaper Elevation="3" Class="p-4 mb-4">
+                    <MudText Typo="Typo.h5" Class="mb-2"><MudIcon Icon="@Icons.Material.Filled.School" Size="Size.Medium" /> Account Details</MudText>
+                    <MudDivider Class="mb-3" />
+                    <MudText Typo="Typo.body1"><MudIcon Icon="@Icons.Material.Filled.Apartment" /> <strong>Faculty:</strong> @_Student.Faculty</MudText>
+                    <MudText Typo="Typo.body1"><MudIcon Icon="@Icons.Material.Filled.Book" /> <strong>Specialization:</strong> @GetSpecializationName()</MudText>
+                    <MudText Typo="Typo.body1"><MudIcon Icon="@Icons.Material.Filled.CalendarToday" /> <strong>Year:</strong> @_Student.Year</MudText>
+                    <MudText Typo="Typo.body1"><MudIcon Icon="@Icons.Material.Filled.Group" /> <strong>Group:</strong> @_Student.Groupa</MudText>
+                </MudPaper>
+
+                <!-- Security Section -->
+                <MudPaper Elevation="3" Class="p-4 mb-4">
+                    <MudText Typo="Typo.h5" Class="mb-2"><MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Medium" /> Security</MudText>
+                    <MudDivider Class="mb-3" />
+                    @if (_Student.Passkey.Equals(0))
+                    {
+                         <MudButton StartIcon="@Icons.Material.Filled.LockOpen" Variant="Variant.Filled" Color="Color.Error" OnClick="ChangePassword">Change Password</MudButton>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Class="text-secondary"><i style="color: red">You can't update your password, since your authentication method is: Passkey!. </i></MudText>
+                    }
+                   
+                </MudPaper>
+                <br/><br/><br/><br/>
+            }
+            else
+            {
+                <MudText Typo="Typo.body1" Color="Color.Error">Student information not found.</MudText>
+            }
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+<style>
+    .profile-img {
+        width: 2.5cm;
+        height: 2.5cm;
+        object-fit: cover;
+        border-radius: 50%; /* Make it a circle */
+        margin: 0 auto;
+    }
+</style>
+
+@code {
+    private Studenti? _Student;
+    private Specialization? _Specialization;
+    private bool _IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _IsLoading = true;
+        try
+        {
+            var userId = await LocalStorage.GetItemAsync<int>("userID");
+
+            _Student = await StudentService.GetStudentById(userId);
+            if (_Student != null)
+            {
+                _Specialization = await StudentService.GetSpecializationByStudentId(_Student.StudnetId);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle or log the exception
+            Console.WriteLine($"Error fetching student data: {ex.Message}");
+        }
+        finally
+        {
+            _IsLoading = false;
+        }
+    }
+
+    private string GetSpecializationName()
+    {
+        return _Specialization?.SpecializationName ?? "Unknown Specialization";
+    }
+
+    private void BackToDashboard()
+    {
+        NavManager.NavigateTo("/indexStudent");
+    }
+
+    private void EditProfile()
+    {
+        NavManager.NavigateTo("/check-email");
+    }
+    private void OpenPasswordVerificationDialog()
+    {
+        var options = new DialogOptions
+        {
+            DisableBackdropClick = true, // Makes the dialog non-closable by clicking outside
+            FullWidth = true, // Ensures the dialog is full width
+            CloseButton = false, // Hides the close button
+            MaxWidth = MaxWidth.Small // Sets the dialog's max width to small
+        };
+
+        DialogService.Show<DialogUpdatePassword>("Verify Your Password", options);
+    }
+    private void ChangePassword()
+    {
+        OpenPasswordVerificationDialog();
+    }
+}

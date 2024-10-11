@@ -1,0 +1,179 @@
+﻿@page "/edit-profile"
+@using Programming_Examination_Platform.Model
+@using Microsoft.EntityFrameworkCore
+@using Programming_Examination_Platform.Services
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject ISnackbar Snackbar
+@inject NavigationManager NavManager
+@inject StudentService StudentService
+
+<PageTitle>Edit Profile</PageTitle>
+
+<MudLayout>
+    <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" Edge="Edge.Start" OnClick="@BackToProfile" />
+        <MudText Typo="Typo.h6">Edit Profile</MudText>
+    </MudAppBar>
+
+    <MudMainContent Class="p-4">
+        <MudContainer MaxWidth="MaxWidth.Medium">
+            @if (_IsLoading)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Medium" Indeterminate="true" />
+            }
+            else if (_Student != null)
+            {
+                <br/><br/>
+                <!-- Title and Subtitle -->
+                <MudText Typo="Typo.h4" Class="mb-2">Edit Your Profile</MudText>
+                <MudText Typo="Typo.subtitle1" Class="mb-4 text-secondary">You can update your personal information below.</MudText>
+                
+                <MudPaper Elevation="3" Class="p-4">
+                    <!-- First Name -->
+                    <MudGrid Spacing="2">
+                        <MudItem xs="10">
+                            <MudTextField T="string" Label="First Name" @bind-Value="_Student.FirstName" Disabled="!_isFirstNameEditable" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" AdornmentColor="Color.Primary" Class="w-100" />
+                        </MudItem>
+                        <MudItem xs="2">
+                            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Edit" OnClick="ToggleEditFirstName">Edit</MudButton>
+                        </MudItem>
+                    </MudGrid>
+
+                    <!-- Last Name -->
+                    <MudGrid Spacing="2">
+                        <MudItem xs="10">
+                            <MudTextField T="string" Label="Last Name" @bind-Value="_Student.LastName" Disabled="!_isLastNameEditable" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person" AdornmentColor="Color.Primary" Class="w-100" />
+                        </MudItem>
+                        <MudItem xs="2">
+                            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Edit" OnClick="ToggleEditLastName">Edit</MudButton>
+                        </MudItem>
+                    </MudGrid>
+
+                    <!-- Faculty -->
+                    <MudGrid Spacing="2">
+                        <MudItem xs="10">
+                            <MudTextField T="string" Label="Faculty" @bind-Value="_Student.Faculty" Disabled="!_isFacultyEditable" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.School" AdornmentColor="Color.Primary" Class="w-100" />
+                        </MudItem>
+                        <MudItem xs="2">
+                            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Edit" OnClick="ToggleEditFaculty">Edit</MudButton>
+                        </MudItem>
+                    </MudGrid>
+
+                    <!-- Specialization -->
+                    <MudGrid Spacing="2">
+                        <MudItem xs="10">
+                            <MudAutocomplete T="Specialization" Label="Specialization" @bind-Value="selectedSpecialization" Items="specializations" ToStringFunc="@(x => x.SpecializationName)" SearchFunc="@SearchSpecializations" Disabled="!_isSpecializationEditable" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Book" AdornmentColor="Color.Primary" Class="w-100" />
+                        </MudItem>
+                        <MudItem xs="2">
+                            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Edit" OnClick="ToggleEditSpecialization">Edit</MudButton>
+                        </MudItem>
+                    </MudGrid>
+
+                    <!-- Year -->
+                    <MudGrid Spacing="2">
+                        <MudItem xs="10">
+                            <MudTextField T="string" Label="Year" @bind-Value="_Student.Year" Disabled="!_isYearEditable" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.CalendarToday" AdornmentColor="Color.Primary" Class="w-100" />
+                        </MudItem>
+                        <MudItem xs="2">
+                            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Edit" OnClick="ToggleEditYear">Edit</MudButton>
+                        </MudItem>
+                    </MudGrid>
+
+                    <!-- Group -->
+                    <MudGrid Spacing="2">
+                        <MudItem xs="10">
+                            <MudTextField T="string" Label="Group" @bind-Value="_Student.Groupa" Disabled="!_isGroupEditable" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Group" AdornmentColor="Color.Primary" Class="w-100" />
+                        </MudItem>
+                        <MudItem xs="2">
+                            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Edit" OnClick="ToggleEditGroup">Edit</MudButton>
+                        </MudItem>
+                    </MudGrid>
+
+                    <!-- Save Changes Button -->
+                    <MudStack Direction="Row" Justify="Justify.Center" Class="mt-4">
+                        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="SaveProfile">Save Changes</MudButton>
+                    </MudStack>
+                </MudPaper>
+            }
+            else
+            {
+                <MudText Typo="Typo.body1" Color="Color.Error">Student information not found.</MudText>
+            }
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private Studenti? _Student;
+    private bool _IsLoading = true;
+
+    // Track if fields are editable
+    private bool _isFirstNameEditable = false;
+    private bool _isLastNameEditable = false;
+    private bool _isFacultyEditable = false;
+    private bool _isSpecializationEditable = false;
+    private bool _isYearEditable = false;
+    private bool _isGroupEditable = false;
+
+    private List<Specialization> specializations = new();
+    private Specialization selectedSpecialization;
+
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    {
+        _IsLoading = true;
+        try
+        {
+            var userId = await LocalStorage.GetItemAsync<int>("userID");
+
+            _Student = await StudentService.GetStudentById(userId);
+            if (_Student != null)
+            {
+                specializations = await StudentService.GetAllSpecializations();
+                selectedSpecialization = specializations.FirstOrDefault(s => s.SpecializationId == _Student.SpecializationId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching student data: {ex.Message}");
+        }
+        finally
+        {
+            _IsLoading = false;
+        }
+    }
+
+    private void ToggleEditFirstName() => _isFirstNameEditable = !_isFirstNameEditable;
+    private void ToggleEditLastName() => _isLastNameEditable = !_isLastNameEditable;
+    private void ToggleEditFaculty() => _isFacultyEditable = !_isFacultyEditable;
+    private void ToggleEditSpecialization() => _isSpecializationEditable = !_isSpecializationEditable;
+    private void ToggleEditYear() => _isYearEditable = !_isYearEditable;
+    private void ToggleEditGroup() => _isGroupEditable = !_isGroupEditable;
+
+    private async System.Threading.Tasks.Task SaveProfile()
+    {
+        try
+        {
+            _Student.SpecializationId = selectedSpecialization.SpecializationId;
+            await StudentService.UpdateStudent(_Student);
+            Snackbar.Add("Profile updated successfully!", Severity.Success);
+            NavManager.NavigateTo("/profile");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error saving profile: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void BackToProfile()
+    {
+        NavManager.NavigateTo("/profile");
+    }
+
+    private async Task<IEnumerable<Specialization>> SearchSpecializations(string value)
+    {
+        await System.Threading.Tasks.Task.Delay(5);
+        if (string.IsNullOrEmpty(value))
+            return specializations;
+        return specializations.Where(s => s.SpecializationName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+}
