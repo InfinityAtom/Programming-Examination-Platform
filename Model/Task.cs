@@ -15,6 +15,10 @@ public partial class Task
 
     public int StudentId { get; set; }
 
+    public string? EncodedClasses { get; set; }
+
+    public string? EncodedCsv { get; set; }
+
     public string? Task1Content { get; set; }
 
     public string? Task1State { get; set; }

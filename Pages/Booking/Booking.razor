@@ -4,138 +4,205 @@
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject StudentService StudentService
 @inject NavigationManager NavManager;
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 
-<PageTitle>Programare la Examen</PageTitle>
+<PageTitle>Select Exam</PageTitle>
 <MudLayout>
-<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
-  <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
-  <div style="padding: 10px; display: flex; align-items: center;">
-    <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
-  </div>
-  <MudSpacer/>
-  <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
-  <MudText Typo="Typo.h6">@userEmail</MudText>
-</MudAppBar>
-<MudDrawer @bind-Open="@open" Elevation="0">
-  <MudNavMenu>
-    <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
-    <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
-    <MudDivider Class="my-2"/>
-    <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
-    <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
-    <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
-    <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.Settings" Expanded="true">
-      <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
-    </MudNavGroup>
-    <MudDivider Class="my-2"/>
-    <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
-  </MudNavMenu>
-</MudDrawer>
-    <MudMainContent Class="pt-16 px-16">
-        <MudContainer Class="mt-6">
-            <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
-                <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
-                    <ItemContent>
-                        <MudAlert Severity="Severity.Info">Select the exam</MudAlert>
-                    </ItemContent>
-                </MudTimelineItem>
-                <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
-                    <ItemContent>
-                        <MudAlert Severity="Severity.Normal">Select the exam date</MudAlert>
-                    </ItemContent>
-                </MudTimelineItem>
-                <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
-                    <ItemContent>
-                        <MudAlert Severity="Severity.Normal">Confirm</MudAlert>
-                    </ItemContent>
-                </MudTimelineItem>
-            </MudTimeline>
+     <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+         <!-- Left Section: Back Button, Menu Button, Logo, and Page Title -->
+         <div style="display: flex; align-items: center;">
+             <!-- Back Button -->
+             <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" OnClick="@GoBack" />
+             
+             <!-- Menu Button -->
+             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@ToggleDrawer" />
+     
+             <!-- Logo and Page Title -->
+             <div style="display: flex; align-items: center; margin-left: 10px;">
+                 <img src="images/header.png" alt="Logo" style="max-height: 50px; max-width: 201px; margin-right: 30px;" />
+                 <MudText Typo="Typo.h6" Color="Color.Inherit">Select Exam</MudText>
+             </div>
+         </div>
+     
+         <!-- Right Section: Spacer, Account Icon, User Email, and Settings Icon -->
+         <div style="display: flex; align-items: center; margin-left: auto;">
+             <!-- Account Icon -->
+             <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
+             
+             <!-- User Email -->
+             <MudText Typo="Typo.h6" Class="ml-2" Color="Color.Inherit">@userEmail</MudText>
+             
+             <!-- Settings Icon -->
+             <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" />
+         </div>
+     </MudAppBar>
+    
+    <MudDrawer @bind-Open="@open" Elevation="0">
+        <MudNavMenu>
+            <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
+            <MudDivider Class="my-2"/>
+            <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+            <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
+            <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
+            <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
+            <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.School" Expanded="true">
+                <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
+            </MudNavGroup>
+            <MudDivider Class="my-2"/>
+            <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
 
-            <br/><br/>
-            <MudText Typo="Typo.h2">Select an exam</MudText>
-            <br/><br/>
-            <MudStack Spacing="15" Row="true">
-                <MudCard>
-                    <MudCardMedia Image="images/jexam.png" Height="200" />
-                    <MudCardContent>
-                        <MudText Typo="Typo.h5">Java Exam</MudText>
-                        <br/>
-                        <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
-                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
-                        <MudText Typo="Typo.body2">in Year II for the ETTI / CALC / TI profiles</MudText>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <MudButton OnClick="HandleSelecteazaClick"  Href="/booking/selectdate" Variant="Variant.Text" Color="Color.Primary">Select</MudButton>
-                    </MudCardActions>
-                </MudCard>
-                <MudCard>
-                    <MudCardMedia Image="images/cexam.png" Height="200" />
-                    <MudCardContent>
-                        <MudText Typo="Typo.h5">C Exam</MudText>
-                        <br/>
-                        <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
-                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
-                        <MudText Typo="Typo.body2">in Year I for the ETTI profiles</MudText>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <br/>
-                        <strong><MudText Typo="Typo.body2">COMING SOON</MudText></strong>
-                    </MudCardActions>
-                </MudCard>
-                <MudCard>
-                    <MudCardMedia Image="images/cppexam.png" Height="200" />
-                    <MudCardContent>
-                        <MudText Typo="Typo.h5">C++ Exam</MudText>
-                        <br/>
-                        <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
-                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
-                        <MudText Typo="Typo.body2">in Year I for the ETTI profiles</MudText>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <br/>
-                        <strong><MudText Typo="Typo.body2">COMING SOON</MudText></strong>
-                    </MudCardActions>
-                </MudCard>
-                <MudCard>
-                    <MudCardMedia Image="images/csexam.png" Height="200" />
-                    <MudCardContent>
-                        <MudText Typo="Typo.h5">C# Exam</MudText>
-                        <br/>
-                        <MudText Typo="Typo.body2">Exam taken at "Transilvania" University in Brașov</MudText>
-                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
-                        <MudText Typo="Typo.body2">in Year III for the EA/TST profiles</MudText>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <br/>
-                        <strong><MudText Typo="Typo.body2">COMING SOON</MudText></strong>
-                    </MudCardActions>
-                </MudCard>
-            </MudStack>
+    <MudMainContent Class="p-6">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+            @if (_CheckIfHasBookedExam)
+                        {
+                            <br /><br />
+                            <MudAlert Severity="Severity.Warning" ContentAlignment="HorizontalAlignment.Start">
+                                It looks like you already have an exam booked on: <strong>@selectedDate.ToString("dd.MM.yyyy")</strong>. If you want to rebook, please cancel your current exam.
+                            </MudAlert>
+                            <br /><br />
+                            <MudButton OnClick="OpenDeleteBookingDialog" Color="Color.Error" Variant="Variant.Filled">Cancel Exam Booking</MudButton>
+                            <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                        }
+            else
+            {
+            <MudText Typo="Typo.h3" Align="Align.Left" Class="mb-4">Select an Exam</MudText>
+                        <MudText Typo="Typo.body1" Align="Align.Left" Class="mb-6">
+                            Choose the exam you wish to book from the options below. Detailed information about each exam is provided to help you make your choice.
+                        </MudText>
+            
+                        <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+                            <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
+                                <ItemContent>
+                                    <MudAlert Severity="Severity.Info">Select the exam</MudAlert>
+                                </ItemContent>
+                            </MudTimelineItem>
+                            <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+                                <ItemContent>
+                                    <MudAlert Severity="Severity.Normal">Select the exam date</MudAlert>
+                                </ItemContent>
+                            </MudTimelineItem>
+                            <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+                                <ItemContent>
+                                    <MudAlert Severity="Severity.Normal">Confirm</MudAlert>
+                                </ItemContent>
+                            </MudTimelineItem>
+                        </MudTimeline>
+            
+                        <MudDivider Class="my-4"/>
+            
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudCard Elevation="3" Class="equal-height-card">
+                                    <MudCardMedia Image="images/jexam.png" Height="250"/>
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.h5">Java Exam</MudText>
+                                        <MudText Typo="Typo.body2" Class="mt-2">Exam at "Transilvania" University in Brașov</MudText>
+                                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+                                        <MudText Typo="Typo.body2">Year II for ETTI / CALC / TI profiles</MudText>
+                                    </MudCardContent>
+                                    <MudCardActions>
+                                        <MudButton OnClick="HandleSelecteazaClick" Href="/booking/selectdate" Variant="Variant.Text" Color="Color.Primary">
+                                            Select
+                                        </MudButton>
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+            
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudCard Elevation="3" Class="equal-height-card">
+                                    <MudCardMedia Image="images/cexam.png" Height="250"/>
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.h5">C Exam</MudText>
+                                        <MudText Typo="Typo.body2" Class="mt-2">Exam at "Transilvania" University in Brașov</MudText>
+                                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+                                        <MudText Typo="Typo.body2">Year I for ETTI profiles</MudText>
+                                    </MudCardContent>
+                                    <MudCardActions>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">COMING SOON</MudText>
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+            
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudCard Elevation="3" Class="equal-height-card">
+                                    <MudCardMedia Image="images/cppexam.png" Height="250"/>
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.h5">C++ Exam</MudText>
+                                        <MudText Typo="Typo.body2" Class="mt-2">Exam at "Transilvania" University in Brașov</MudText>
+                                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+                                        <MudText Typo="Typo.body2">Year I for ETTI profiles</MudText>
+                                    </MudCardContent>
+                                    <MudCardActions>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">COMING SOON</MudText>
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+            
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudCard Elevation="3" Class="equal-height-card">
+                                    <MudCardMedia Image="images/csexam.png" Height="250"/>
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.h5">C# Exam</MudText>
+                                        <MudText Typo="Typo.body2" Class="mt-2">Exam at "Transilvania" University in Brașov</MudText>
+                                        <MudText Typo="Typo.body2">Faculty of Electrical Engineering and Computer Science</MudText>
+                                        <MudText Typo="Typo.body2">Year III for EA/TST profiles</MudText>
+                                    </MudCardContent>
+                                    <MudCardActions>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">COMING SOON</MudText>
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+                        </MudGrid>    
+            }
         </MudContainer>
     </MudMainContent>
-    
-    
 </MudLayout>
+
+<style>
+    .equal-height-card {
+        height: 350px; /* Adjust the height to match the required card size */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .mud-card-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+</style>
 <br/><br/><br/><br/><br/>
 
 @code {
     bool open = false;
-
+    private bool _CheckIfHasBookedExam = false;
+    private DateTime selectedDate;
+    private int userID;
+    private string userEmail;
+    private string _userRole;
+    private Model.Booking? _Booking;
+    
     void ToggleDrawer()
     {
         open = !open;
     }
-    private int userID;
-    private string userEmail;
-    private string _userRole;
-    
+    private async Task GoBack()
+    {
+    // Call the JavaScript function to go back
+        await JSRuntime.InvokeVoidAsync("goBack");
+    }
     protected override async Task OnInitializedAsync()
     {
         userID = await LocalStorage.GetItemAsync<int>("userID");
         _userRole = await LocalStorage.GetItemAsync<string>("userRole");
         
-    // Check if user is a student or if no role is set.
+        // Check if user is a student or if no role is set.
         if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
         {
             NavManager.NavigateTo("/loginStudent");
@@ -147,14 +214,60 @@
             NavManager.NavigateTo("/loginStudent");
             return;
         }
+        
         var student = await StudentService.GetStudentById(userID);
         userEmail = student?.Email ?? "Email not found";
+        
+        // Check if the student already has a booking
+        _Booking = await StudentService.GetBookingByUserId(userID);
+        if (_Booking != null)
+        {
+            _CheckIfHasBookedExam = true;
+            selectedDate = _Booking.BookingDate;
+        }
     }
     
     private async Task OnLogoutButtonClick()
     {
         await LocalStorage.SetItemAsync("userID", -1);
-        NavManager.NavigateTo("/login");
+        NavManager.NavigateTo("/loginStudent");
+    }
+
+    private async Task OpenDeleteBookingDialog()
+    {
+        var options = new DialogOptions
+        {
+            DisableBackdropClick = true,
+            FullWidth = true,
+            CloseButton = false,
+            MaxWidth = MaxWidth.Small
+        };
+
+        var dialogResult = await DialogService.Show<DialogDeleteBooking>("Confirm Delete", options).Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        await DeleteBooking();
+    }
+
+    private async Task DeleteBooking()
+    {
+        if (_Booking != null)
+        {
+            bool success = await StudentService.DeleteBooking(_Booking.BookingId);
+            if (success)
+            {
+                Snackbar.Add("Booking canceled successfully.", Severity.Success);
+                _CheckIfHasBookedExam = false;
+                StateHasChanged();
+                NavManager.NavigateTo("/booking/selectexam", forceLoad: true); // Hard refresh
+            }
+            else
+            {
+                Snackbar.Add("Error canceling booking. Please try again.", Severity.Error);
+            }
+        }
     }
     private async Task HandleSelecteazaClick()
     {

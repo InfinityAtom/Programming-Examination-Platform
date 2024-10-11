@@ -1,0 +1,24 @@
+﻿@code {
+  [Parameter]
+  public string Title { get; set; }
+
+  [Parameter]
+  public string Description { get; set; }
+
+  [Parameter]
+  public string ImageSrc { get; set; }
+
+  [Parameter]
+  public RenderFragment ChildContent { get; set; }
+}
+
+<MudGrid>
+  <MudItem xs="12" md="6">
+    <MudText Typo="Typo.h4">@Title</MudText>
+    <MudText Typo="Typo.body1">@Description</MudText>
+    @ChildContent
+  </MudItem>
+  <MudItem xs="12" md="6" Class="d-flex justify-center align-center">
+    <MudImage Src="@ImageSrc" Alt="@Title" Style="max-width: 100%; height: auto;" />
+  </MudItem>
+</MudGrid>

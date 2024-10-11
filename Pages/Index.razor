@@ -4,37 +4,58 @@
 @inject IDialogService DialogService
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject StudentService StudentService
-
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 <PageTitle>Dashboard</PageTitle>
 <MudLayout>
-  <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
-    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
-    <div style="padding: 10px; display: flex; align-items: center;">
-      <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
-    </div>
-    <MudSpacer/>
-    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
-    <MudText Typo="Typo.h6">@_UserEmail</MudText>
-  </MudAppBar>
+ <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+     <!-- Left Section: Back Button, Menu Button, Logo, and Page Title -->
+     <div style="display: flex; align-items: center;">
+         <!-- Back Button -->
+         <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" OnClick="@GoBack" />
+         
+         <!-- Menu Button -->
+         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@ToggleDrawer" />
+ 
+         <!-- Logo and Page Title -->
+         <div style="display: flex; align-items: center; margin-left: 10px;">
+             <img src="images/header.png" alt="Logo" style="max-height: 50px; max-width: 201px; margin-right: 30px;" />
+             <MudText Typo="Typo.h6" Color="Color.Inherit">Dashboard</MudText>
+         </div>
+     </div>
+ 
+     <!-- Right Section: Spacer, Account Icon, User Email, and Settings Icon -->
+     <div style="display: flex; align-items: center; margin-left: auto;">
+         <!-- Account Icon -->
+         <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
+         
+         <!-- User Email -->
+         <MudText Typo="Typo.h6" Class="ml-2" Color="Color.Inherit">@_UserEmail</MudText>
+         
+         <!-- Settings Icon -->
+         <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" />
+     </div>
+ </MudAppBar>
+
   <MudDrawer @bind-Open="@_Open" Elevation="0">
     <MudNavMenu>
       <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
       <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
       <MudDivider Class="my-2"/>
       <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-      <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
-      <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
-      <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
+      <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Exam Booking</MudNavLink>
+      <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Exam Results</MudNavLink>
+      <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Leaderboard</MudNavLink>
       <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.Settings" Expanded="true">
-        <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
+        <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam Tutorials</MudNavLink>
       </MudNavGroup>
       <MudDivider Class="my-2"/>
+      <MudNavLink Href="/profile" Icon="@Icons.Material.Filled.AccountCircle">View Profile</MudNavLink>
       <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
     </MudNavMenu>
   </MudDrawer>
   <MudMainContent Class="pt-16 px-16">
     <MudContainer Class="mt-6">
-
       @if (_IsLoading)
       {
         <MudText Typo="Typo.h2">Dashboard</MudText>
@@ -46,199 +67,232 @@
       {
         <MudText Typo="Typo.h2">Dashboard</MudText>
         <br/>
-        <br/>
-
-        <MudStack Spacing="15" Row="true" Class="mobile-stack">
-          <MudCard>
-            <MudCardHeader>
-              <CardHeaderContent>
-                <MudText Typo="Typo.h5">Exam Booking:</MudText>
-              </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-              @if (_CheckIfHasBookedExam)
-              {
-                <MudText>Exam: <strong> @_SelectedExam </strong> </MudText>
-                <MudText>Date:</MudText>
-                <MudText Typo="Typo.h3">
-                  <strong>@_SelectedDate</strong>
-                </MudText>
-              }
-              <MudCardActions>
-                @if (_CheckIfHasBookedExam == false)
-                {
-                  <MudButton Variant="Variant.Filled" Color="Color.Success" Href="/Booking/selectexam">Book your exam now</MudButton>
-                }
-              </MudCardActions>
-            </MudCardContent>
-          </MudCard>
-          <MudCard>
-            <MudCardHeader>
-              <CardHeaderContent>
+        <MudGrid Spacing="3">
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h5">Exam Booking:</MudText>
+                    @if (_CheckIfHasBookedExam)
+                    {
+                        <MudChip Color="Color.Primary" Class="ml-auto">@_DaysTillExam days left</MudChip>
+                    }
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>Exam: <strong>@_SelectedExam</strong></MudText>
+                    <MudText>Date:</MudText>
+                    <MudText Typo="Typo.h3">
+                        <strong>@_SelectedDate</strong>
+                    </MudText>
+                    @* Add the delete button here *@
+                    @if (_CheckIfHasBookedExam)
+                    {
+                      <br/>
+                        <MudButton OnClick="@OpenDeleteBookingDialog" Disabled="@(_FinalGrade != DefaultFinalGradeText)" Variant="Variant.Outlined" Color="Color.Error">
+                            Delete Booking
+                        </MudButton>
+                    }
+                </MudCardContent>
+            </MudCard>
+          </MudItem>
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardHeader>
                 <MudText Typo="Typo.h5">Grade:</MudText>
-              </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-              <MudText>Exam: <strong> @_SelectedExam </strong> </MudText>
-              <MudText>Your Grade:</MudText>
-              <MudText Typo="Typo.h3">
-                <strong>@_FinalGrade &#8195; &#8195;</strong>
-              </MudText>
-            </MudCardContent>
-          </MudCard>
-          <MudCard>
-            <MudCardHeader>
-              <CardHeaderContent>
+              </MudCardHeader>
+              <MudCardContent>
+                <MudText>Exam: <strong>@_SelectedExam</strong></MudText>
+                <MudText>Your Grade:</MudText>
+                <MudText Typo="Typo.h3">
+                  <strong>@_FinalGrade</strong>
+                </MudText>
+              </MudCardContent>
+            </MudCard>
+          </MudItem>
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardHeader>
                 <MudText Typo="Typo.h5">Status:</MudText>
-              </CardHeaderContent>
-              <CardHeaderActions>
                 @if (_StudentStatus == "Succeeded")
                 {
-                  <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success"/>
+                  <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Class="ml-auto"/>
                 }
                 @if (_StudentStatus == "Failed")
                 {
-                  <MudIconButton Icon="@Icons.Material.Filled.Error" Color="Color.Error"/>
+                  <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" Class="ml-auto"/>
                 }
                 @if (_StudentStatus == "No Status")
                 {
-                  <MudIconButton Icon="@Icons.Material.Filled.QuestionMark" Color="Color.Info"/>
+                  <MudIcon Icon="@Icons.Material.Filled.QuestionMark" Color="Color.Info" Class="ml-auto"/>
                 }
-              </CardHeaderActions>
-
-            </MudCardHeader>
-            <MudCardContent>
-              <MudText>Exam: <strong> @_SelectedExam </strong> </MudText>
-              <MudText>Status:</MudText>
-              @if (_StudentStatus == "Succeeded")
-              {
-                <MudText Typo="Typo.h3" Color="Color.Success">
-                  <strong>@_StudentStatus &#8195; &#8195;</strong>
+              </MudCardHeader>
+              <MudCardContent>
+                <MudText>Exam: <strong>@_SelectedExam</strong></MudText>
+                <MudText>Status:</MudText>
+                <MudText Typo="Typo.h3" Color="@(_StudentStatus == "Succeeded" ? Color.Success : _StudentStatus == "Failed" ? Color.Error : Color.Info)">
+                  <strong>@_StudentStatus</strong>
                 </MudText>
-              }
-              @if (_StudentStatus == "Failed")
-              {
-                <MudText Typo="Typo.h3" Color="Color.Error">
-                  <strong>@_StudentStatus &#8195; &#8195;</strong>
-                </MudText>
-              }
-              @if (_StudentStatus == "No Status")
-              {
-                <MudText Typo="Typo.h3" Color="Color.Info">
-                  <strong>@_StudentStatus &#8195; &#8195;</strong>
-                </MudText>
-              }
-
-            </MudCardContent>
-          </MudCard>
-        </MudStack>
+              </MudCardContent>
+            </MudCard>
+          </MudItem>
+        </MudGrid>
+        <br/><br/><br/>
+        <MudText Typo="Typo.h3">Study</MudText>
         <br/>
+        <MudGrid Spacing="2">
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardMedia Image="images/study.png" Class="card-media-img"  Height="250">
+              </MudCardMedia>
+              <MudCardContent>
+                <MudText Typo="Typo.h5">Study Materials</MudText>
+                <MudText Typo="Typo.body2">Study and prepare for the big day. Here youțll find a lot of useful resources</MudText>
+              </MudCardContent>
+              <MudCardActions>
+                <MudButton Href="/study/" Variant="Variant.Text" Color="Color.Primary">START STUDYING</MudButton>
+              </MudCardActions>
+            </MudCard>
+          </MudItem>
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardMedia Image="images/simulator.png" Class="card-media-img"  Height="250">
+              </MudCardMedia>
+              <MudCardContent>
+                <MudText Typo="Typo.h5">Exam simulation</MudText>
+                <MudText Typo="Typo.body2">Before going to the actual exam, test yourself to know if you are well prepared</MudText>
+              </MudCardContent>
+              <MudCardActions>
+                <MudButton Href="/simulator/" Variant="Variant.Text" Color="Color.Primary">Go to resource</MudButton>
+              </MudCardActions>
+            </MudCard>
+          </MudItem>
+        </MudGrid>
+        <br/><br/><br/>
+        <MudText Typo="Typo.h3">Exam Management</MudText>
         <br/>
-        @if (_CheckIfHasBookedExam)
-        {
-          <MudText Typo="Typo.h3" Color="Color.Primary"><strong>@_DaysTillExam</strong> days left till your exam </MudText>
-        }
+        <MudGrid Spacing="3">
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardMedia Image="images/exams.png" Class="card-media-img"  Height="250">
+              </MudCardMedia>
+              <MudCardContent>
+                <MudText Typo="Typo.h5">Book an Exam</MudText>
+                <MudText Typo="Typo.body2">Select the date that is most convenient for you to take your exam.</MudText>
+              </MudCardContent>
+              <MudCardActions>
+                <MudButton Href="/booking/selectexam" Variant="Variant.Text" Color="Color.Primary">Book now</MudButton>
+              </MudCardActions>
+            </MudCard>
+          </MudItem>
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardMedia Image="images/results.png" Class="card-media-img" Height="250">
+                
+              </MudCardMedia>
+              <MudCardContent>
+                <MudText Typo="Typo.h5">Check Your Results</MudText>
+                <MudText Typo="Typo.body2">Check your progress on the last exam taken. You can also see feedback for each requirement and even the archive with the classes written by you, for verification.</MudText></MudCardContent>
+              <MudCardActions>
+                <MudButton Href="/results" Variant="Variant.Text" Color="Color.Primary">See the results</MudButton>
+              </MudCardActions>
+            </MudCard>
+          </MudItem>
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardMedia Image="images/leaderboard.png" Class="card-media-img" Height="250">
+                
+              </MudCardMedia>
+              <MudCardContent>
+                <MudText Typo="Typo.h5">Check Your Position in the Ranking</MudText>
+                <MudText Typo="Typo.body2">See where you rank among your colleagues. The tiebreaker will be taken after the final score and the time elapsed in the exam.</MudText></MudCardContent>
+              <MudCardActions>
+                <MudButton Href="/scoreboard" Variant="Variant.Text" Color="Color.Primary">See the ranking</MudButton>
+              </MudCardActions>
+            </MudCard>
+          </MudItem>
+        </MudGrid>
+        <br/><br/><br/>
+        <MudText Typo="Typo.h3">Software</MudText>
+        <br/>
+        <MudGrid Spacing="3">
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardMedia Image="images/download_banner_ij.png" Class="card-media-img" Height="250">
+              </MudCardMedia>
+              <MudCardContent>
+                <MudText Typo="Typo.h5">Download the Required IDE</MudText>
+                <MudText Typo="Typo.body2">IntelliJ IDEA Ultimate. Log in with the University Account.</MudText>
+              </MudCardContent>
+              <MudCardActions>
+                <MudButton @onclick="OpenDialog2" Variant="Variant.Text" Color="Color.Primary">Download</MudButton>
+              </MudCardActions>
+            </MudCard>
+          </MudItem>
+          <!-- Empty spaces to create the visual effect of three cards -->
+          <MudItem xs="12" md="4">
+            <div></div>
+          </MudItem>
+          <MudItem xs="12" md="4">
+            <div></div>
+          </MudItem>
+        </MudGrid>
+        <br/><br/><br/>
+        <MudText Typo="Typo.h3">Exam Details</MudText>
+        <br/>
+        <MudGrid Spacing="3">
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardMedia Image="images/video.png" Class="card-media-img" Height="250">
+                
+              </MudCardMedia>
+              <MudCardContent>
+                <MudText Typo="Typo.h5">Exam Demo</MudText>
+                <MudText Typo="Typo.body2">A short exam demo and a tutorial on accessing the exam.</MudText></MudCardContent>
+              <MudCardActions>
+                <MudButton Href="https://youtu.be/jdK-X0iu9Zs" Variant="Variant.Text" Color="Color.Primary">YouTube Video</MudButton>
+              </MudCardActions>
+            </MudCard>
+          </MudItem>
+          <MudItem xs="12" md="4">
+            <MudCard Class="equal-height">
+              <MudCardMedia Image="images/tutorial.png" Class="card-media-img" Height="250">
+              </MudCardMedia>
+              <MudCardContent>
+                <MudText Typo="Typo.h5">Exam Tutorials</MudText>
+                <MudText Typo="Typo.body2">JavaExam: Information about the interface and the exam rules.</MudText></MudCardContent>
+              <MudCardActions>
+                <MudButton Href="/tutorials" Variant="Variant.Text" Color="Color.Primary">Exam Tutorials</MudButton>
+              </MudCardActions>
+            </MudCard>
+          </MudItem>
+          <!-- Empty space to create the visual effect of three cards -->
+          <MudItem xs="12" md="4">
+            <div></div>
+          </MudItem>
+        </MudGrid>
       }
-      <br/><br/>
-      <MudText Typo="Typo.h3">Exam management</MudText>
-      <br/>
-
-      <MudStack Spacing="15" Row="true">
-        <MudCard>
-          <MudCardMedia Image="images/exams.png" Height="200"/>
-          <MudCardContent>
-            <MudText Typo="Typo.h5">Book an exam</MudText>
-            <br/>
-            <MudText Typo="Typo.body2">Select the date that is</MudText>
-            <MudText Typo="Typo.body2">most convenient for you to take your exam.&#8195; &#8195; &#8195; &#8195; &#8195;</MudText>
-            <br/><br/>
-          </MudCardContent>
-          <MudCardActions>
-            <MudButton Href="/booking/selectexam" Variant="Variant.Text" Color="Color.Primary">Book now</MudButton>
-          </MudCardActions>
-        </MudCard>
-        <MudCard>
-          <MudCardMedia Image="images/results.png" Height="200"/>
-          <MudCardContent>
-            <MudText Typo="Typo.h5">Check your results</MudText>
-            <br/>
-            <MudText Typo="Typo.body2">Check your progress on the last exam taken</MudText>
-            <MudText Typo="Typo.body2">From here you can also see the feedback for each requirement, </MudText>
-            <MudText Typo="Typo.body2">even the archive with the classes written by you, for verification</MudText>
-          </MudCardContent>
-          <MudCardActions>
-            <MudButton Href="/results" Variant="Variant.Text" Color="Color.Primary">See the results</MudButton>
-          </MudCardActions>
-        </MudCard>
-        <MudCard>
-          <MudCardMedia Image="images/leaderboard.png" Height="200"/>
-          <MudCardContent>
-            <MudText Typo="Typo.h5">Check your position in the ranking</MudText>
-            <br/>
-            <MudText Typo="Typo.body2">You can see from here, where you rank among your colleagues</MudText>
-            <MudText Typo="Typo.body2">The tiebreaker will be taken after the final score, and the</MudText>
-            <MudText Typo="Typo.body2">time elapsed in the exam.</MudText>
-          </MudCardContent>
-          <MudCardActions>
-            <MudButton Href="/scoreboard" Variant="Variant.Text" Color="Color.Primary">See the ranking</MudButton>
-          </MudCardActions>
-        </MudCard>
-      </MudStack>
-      <br/><br/>
-      <MudText Typo="Typo.h3">Software</MudText>
-      <br/>
-      <MudStack Spacing="15" Row="true">
-        <MudCard>
-          <MudCardMedia Image="images/download_banner_ij.png" Height="200"/>
-          <MudCardContent>
-            <MudText Typo="Typo.h5">Download the required IDE</MudText>
-            <br/>
-            <MudText Typo="Typo.body2">IntelliJ IDEA Ultimate </MudText>
-            <MudText Typo="Typo.body2">LogIn with the University Account</MudText>
-            <br/>
-          </MudCardContent>
-          <MudCardActions>
-            <MudButton @onclick="OpenDialog2" Variant="Variant.Text" Color="Color.Primary">Download</MudButton>
-          </MudCardActions>
-        </MudCard>
-      </MudStack>
-      <br/><br/>
-      <MudText Typo="Typo.h3">Exam details</MudText>
-      <br/>
-      <MudStack Spacing="15" Row="true">
-        <MudCard>
-          <MudCardMedia Image="images/video.png" Height="200"/>
-          <MudCardContent>
-            <MudText Typo="Typo.h5">Exam Demo</MudText>
-            <br/>
-            <MudText Typo="Typo.body2">A short exam demo and a short tutorial on </MudText>
-            <MudText Typo="Typo.body2">accessing the exam</MudText>
-            <br/>
-          </MudCardContent>
-          <MudCardActions>
-            <MudButton Href="https://youtu.be/jdK-X0iu9Zs" Variant="Variant.Text" Color="Color.Primary">YouTube Video</MudButton>
-          </MudCardActions>
-        </MudCard>
-
-        <MudCard>
-          <MudCardMedia Image="images/tutorial.png" Height="200"/>
-          <MudCardContent>
-            <MudText Typo="Typo.h5">Exam Tutorials</MudText>
-            <br/>
-            <MudText Typo="Typo.body2">JavaExam </MudText>
-            <MudText Typo="Typo.body2">Information about the interface and the exam rules</MudText>
-            <br/>
-          </MudCardContent>
-          <MudCardActions>
-            <MudButton Href="/tutorials" Variant="Variant.Text" Color="Color.Primary">Exam Tutorials</MudButton>
-          </MudCardActions>
-        </MudCard>
-      </MudStack>
     </MudContainer>
   </MudMainContent>
 </MudLayout>
-<br/><br/>
+<br/><br/><br/><br/><br/><br/>
+<style>
+    .equal-height {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-radius: 10px;
+    }
 
+    .card-media-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
+    }
+
+    .ml-auto {
+        margin-left: auto;
+    }
+</style>
 
 @code {
   
@@ -283,7 +337,53 @@
   {
     _Open = !_Open;
   }
+  private async Task GoBack()
+  {
+  // Call the JavaScript function to go back
+    var assertion = await JSRuntime.InvokeAsync<object>("goBack");
+  }
 
+  private async Task OpenDeleteBookingDialog()
+  {
+    var options = new DialogOptions
+    {
+      DisableBackdropClick = true, // Makes the dialog non-closable by clicking outside
+      FullWidth = true, // Ensures the dialog is full width
+      CloseButton = false, // Hides the close button
+      MaxWidth = MaxWidth.Small // Sets the dialog's max width to small
+    };
+
+    var dialogResult = await DialogService.Show<DialogDeleteBooking>("Confirm Delete", options).Result;
+
+    if (dialogResult.Cancelled)
+      return;
+
+    await DeleteBooking();
+  }
+
+  private async Task DeleteBooking()
+  {
+    if (_Booking != null)
+    {
+      bool success = await StudentService.DeleteBooking(_Booking.BookingId);
+      if (success)
+      {
+        Snackbar.Add("Booking deleted successfully.", Severity.Success);
+        _CheckIfHasBookedExam = false;
+        _IsLoading = true;
+        await StudentService.SendSorryEmail(_Student, "Java Exam");
+        _IsLoading = false;
+        StateHasChanged();
+        NavManager.NavigateTo("/indexStudent", forceLoad: true); // Hard refresh
+        
+      }
+      else
+      {
+        Snackbar.Add("Error deleting booking. Please try again.", Severity.Error);
+      }
+    }
+  }
+  
   protected override async Task OnInitializedAsync()
   {
     _IsLoading = true;
@@ -311,7 +411,7 @@
         _SelectedExam = _Booking.ExamId == 1 ? ExamNameIf1 : ExamNameIfAnythingElse;
         _SelectedDate = _Booking.BookingDate.ToString(DateFormat);
         _TimeTillExam = DateTime.ParseExact(_SelectedDate, DateFormat, null) - DateTime.Now;
-        _DaysTillExam = (int)_TimeTillExam.TotalDays;
+        _DaysTillExam = (int)_TimeTillExam.TotalDays + 1;
       }
       else
       {

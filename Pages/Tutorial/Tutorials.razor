@@ -3,17 +3,39 @@
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject StudentService StudentService
 @inject NavigationManager NavManager;
-<PageTitle>Tutorialele Examenelor</PageTitle>
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Exam Tutorials</PageTitle>
 <MudLayout>
-  <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
-    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
-    <div style="padding: 10px; display: flex; align-items: center;">
-      <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
-    </div>
-    <MudSpacer/>
-    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
-    <MudText Typo="Typo.h6">@userEmail</MudText>
-  </MudAppBar>
+<MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+         <!-- Left Section: Back Button, Menu Button, Logo, and Page Title -->
+         <div style="display: flex; align-items: center;">
+             <!-- Back Button -->
+             <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" OnClick="@GoBack" />
+             
+             <!-- Menu Button -->
+             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@ToggleDrawer" />
+     
+             <!-- Logo and Page Title -->
+             <div style="display: flex; align-items: center; margin-left: 10px;">
+                 <img src="images/header.png" alt="Logo" style="max-height: 50px; max-width: 201px; margin-right: 30px;" />
+                 <MudText Typo="Typo.h6" Color="Color.Inherit">Select Exam</MudText>
+             </div>
+         </div>
+     
+         <!-- Right Section: Spacer, Account Icon, User Email, and Settings Icon -->
+         <div style="display: flex; align-items: center; margin-left: auto;">
+             <!-- Account Icon -->
+             <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
+             
+             <!-- User Email -->
+             <MudText Typo="Typo.h6" Class="ml-2" Color="Color.Inherit">@userEmail</MudText>
+             
+             <!-- Settings Icon -->
+             <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" />
+         </div>
+     </MudAppBar>
+
   <MudDrawer @bind-Open="@open" Elevation="0">
     <MudNavMenu>
       <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
@@ -117,7 +139,11 @@
 
 @code {
   bool open = false;
-
+  private async Task GoBack()
+  {
+  // Call the JavaScript function to go back
+    await JSRuntime.InvokeVoidAsync("goBack");
+  }
   void ToggleDrawer()
   {
     open = !open;

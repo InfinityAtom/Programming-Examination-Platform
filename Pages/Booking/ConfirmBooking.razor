@@ -7,89 +7,140 @@
 @inject StudentService StudentService
 @inject NavigationManager NavManager;
 @inject ISnackbar Snackbar;
+@inject IJSRuntime JSRuntime
 
-<PageTitle>Confirmarea Datelor</PageTitle>
+<PageTitle>Confirm Your Exam</PageTitle>
 <MudLayout>
     <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
-        <div style="padding: 10px; display: flex; align-items: center;">
-            <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
-        </div>
-        <MudSpacer/>
-        <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
-        <MudText Typo="Typo.h6">@userEmail</MudText>
-    </MudAppBar>
-    <MudDrawer @bind-Open="@open" Elevation="0">
-        <MudNavMenu>
-            <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
-            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
-            <MudDivider Class="my-2"/>
-            <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-            <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
-            <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
-            <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
-            <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.Settings" Expanded="true">
-                <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
-            </MudNavGroup>
-            <MudDivider Class="my-2"/>
-            <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
-        </MudNavMenu>
-    </MudDrawer>
-    <MudMainContent Class="pt-16 px-16">
-        <MudContainer Class="mt-6">
-            <br/><br/>
-            <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
-                <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
-                    <ItemContent>
-                        <MudAlert Severity="Severity.Success">Select the exam</MudAlert>
-                    </ItemContent>
-                </MudTimelineItem>
-                <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
-                    <ItemContent>
-                        <MudAlert Severity="Severity.Success">Select the exam date</MudAlert>
-                    </ItemContent>
-                </MudTimelineItem>
-                <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
-                    <ItemContent>
-                        <MudAlert Severity="Severity.Info">Confirm</MudAlert>
-                    </ItemContent>
-                </MudTimelineItem>
-            </MudTimeline>
-            <br/><br/>
-            <style>
-.center
-{
-      margin: auto;
-      width: 80%;
-      padding: 20px;
-}     
-</style>
-            <div class="center">
-                <div class="center">
-                    <MudText Typo="Typo.h2" Align="Align.Center">Check the information below</MudText>
-                    <br/><br/>
-                    <MudCard>
-                        <MudCardMedia Image="images/checkBanner.png" Height="200"/>
-                        <MudCardContent>
-                            <MudText Typo="Typo.h5">Is the information below correct?</MudText>
-                            <MudText Typo="Typo.caption">Click on Confirm to agree that the data is correct! </MudText>
-                            <br/><br/>
-                            <MudField Label="Student's email:"  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail">@userEmail </MudField>
-                            <MudField Label="Exam:"  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Checklist">@examName</MudField>
-                            <MudField Label="Exam date:"  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.DateRange"> @selectedDate.ToString("MMMM dd yyyy")</MudField>
-                            <MudField Label="Exam starts at:"  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Timer"> @selectedDate.ToString("t")</MudField>
-                            <MudField Label="Available places:" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AirlineSeatReclineExtra">@noOfPlaces</MudField>
-                            <MudField Label="Exam Room:" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.HomeWork">@roomName</MudField>
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudButton Variant="Variant.Filled" OnClick="ConfirmingBooking" Color="Color.Success">Confirm</MudButton>
-                        </MudCardActions>
-                    </MudCard>
-                </div>
-            </div>
+             <!-- Left Section: Back Button, Menu Button, Logo, and Page Title -->
+             <div style="display: flex; align-items: center;">
+                 <!-- Back Button -->
+                 <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" OnClick="@GoBack" />
+                 
+                 <!-- Menu Button -->
+                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@ToggleDrawer" />
+         
+                 <!-- Logo and Page Title -->
+                 <div style="display: flex; align-items: center; margin-left: 10px;">
+                     <img src="images/header.png" alt="Logo" style="max-height: 50px; max-width: 201px; margin-right: 30px;" />
+                     <MudText Typo="Typo.h6" Color="Color.Inherit">Confirm Booking</MudText>
+                 </div>
+             </div>
+         
+             <!-- Right Section: Spacer, Account Icon, User Email, and Settings Icon -->
+             <div style="display: flex; align-items: center; margin-left: auto;">
+                 <!-- Account Icon -->
+                 <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
+                 
+                 <!-- User Email -->
+                 <MudText Typo="Typo.h6" Class="ml-2" Color="Color.Inherit">@userEmail</MudText>
+                 
+                 <!-- Settings Icon -->
+                 <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" />
+             </div>
+         </MudAppBar>
+
+       
+       <MudDrawer @bind-Open="@open" Elevation="0">
+           <MudNavMenu>
+               <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+               <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
+               <MudDivider Class="my-2"/>
+               <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+               <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
+               <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
+               <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
+               <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.School" Expanded="true">
+                   <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
+               </MudNavGroup>
+               <MudDivider Class="my-2"/>
+               <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+           </MudNavMenu>
+       </MudDrawer>
+
+    <MudMainContent Class="p-4">
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+            @if (_CheckIfHasBookedExam)
+                        {
+                            <br /><br />
+                            <MudAlert Severity="Severity.Warning" ContentAlignment="HorizontalAlignment.Start">
+                                It looks like you already have an exam booked on: <strong>@selectedDate.ToString("dd.MM.yyyy")</strong>. If you want to rebook, please cancel your current exam.
+                            </MudAlert>
+                            <br /><br />
+                            <MudButton OnClick="OpenDeleteBookingDialog" Color="Color.Error" Variant="Variant.Filled">Cancel Exam Booking</MudButton>
+                            <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                        }
+            else
+            {
+                <br/><br/>
+            <MudText Typo="Typo.h3" Align="Align.Left" Class="mb-4">Confirm Your Exam Details</MudText>
+            <MudText Typo="Typo.body1" Align="Align.Left" Class="mb-6">
+                Please review the details of your exam booking below. If everything is correct, click "Confirm" to finalize your booking.
+            </MudText>
+
+            <MudDivider Class="mb-4"/>
+
+            <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-3 mt-4">Student Information</MudText>
+            <MudText Typo="Typo.body1" Class="mb-4 ml-3">
+                <MudIcon Icon="@Icons.Material.Filled.AlternateEmail" Color="Color.Primary"/> <strong>Email:</strong> @userEmail
+            </MudText>
+            <MudDivider Class="my-4"/>
+
+            <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-3 mt-4">Exam Information</MudText>
+            <MudText Typo="Typo.body1" Class="mb-4 ml-3">
+                <MudIcon Icon="@Icons.Material.Filled.Checklist" Color="Color.Primary"/> <strong>Exam:</strong> @examName
+            </MudText>
+            <MudText Typo="Typo.body1" Class="mb-4 ml-3">
+                <MudIcon Icon="@Icons.Material.Filled.DateRange" Color="Color.Primary"/> <strong>Exam Date:</strong> @selectedDate.ToString("MMMM dd, yyyy")
+            </MudText>
+            <MudText Typo="Typo.body1" Class="mb-4 ml-3">
+                <MudIcon Icon="@Icons.Material.Filled.Timer" Color="Color.Primary"/> <strong>Start Time:</strong> @selectedDate.ToString("t")
+            </MudText>
+            <MudDivider Class="my-4"/>
+
+            <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-3 mt-4">Venue Details</MudText>
+            <MudText Typo="Typo.body1" Class="mb-4 ml-3">
+                <MudIcon Icon="@Icons.Material.Filled.EventSeat" Color="Color.Primary"/> <strong>Available Places:</strong> @noOfPlaces
+            </MudText>
+            <MudText Typo="Typo.body1" Class="mb-4 ml-3">
+                <MudIcon Icon="@Icons.Material.Filled.HomeWork" Color="Color.Primary"/> <strong>Exam Room:</strong> @roomName
+            </MudText>
+
+            <MudDivider Class="my-4"/>
+
+            <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Large" FullWidth="true" OnClick="ConfirmingBooking">
+                Confirm
+            </MudButton>
+            }
+            
+            
         </MudContainer>
     </MudMainContent>
 </MudLayout>
+<br/><br/><br/><br/><br/>
+
+<style>
+    .MudMainContent {
+        background-color: #f9f9f9;
+        padding-top: 32px;
+        padding-bottom: 32px;
+        border-radius: 8px;
+    }
+
+    .MudText {
+        line-height: 1.6;
+    }
+
+    .MudIcon {
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+
+    .MudButton {
+        margin-top: 32px;
+        padding: 12px 0;
+    }
+</style>
 @code {
     bool open = false;
 
@@ -108,6 +159,8 @@
     private int? noOfPlaces;
     private int examScheduleID;
     private string? roomName;
+    private bool _CheckIfHasBookedExam = false;
+    private Model.Booking? _Booking;
     
     protected override async Task OnInitializedAsync()
     {
@@ -137,8 +190,58 @@
         noOfPlaces = await StudentService.GetAvailablePlacesByExamScheduleId(examScheduleID);
         roomName = await StudentService.GetRoomNameByExamScheduleId(examScheduleID);
         examName = selectedExam == 1 ? "Java Exam" : "Unknown Exam"; // Adjust as necessary
+        
+        _Booking = await StudentService.GetBookingByUserId(userID);
+        if (_Booking != null)
+        {
+            _CheckIfHasBookedExam = true;
+            selectedDate = _Booking.BookingDate;
+        }
     }
+    private async Task OpenDeleteBookingDialog()
+    {
+        var options = new DialogOptions
+        {
+            DisableBackdropClick = true,
+            FullWidth = true,
+            CloseButton = false,
+            MaxWidth = MaxWidth.Small
+        };
 
+        var dialogResult = await DialogService.Show<DialogDeleteBooking>("Confirm Delete", options).Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        await DeleteBooking();
+    }
+    
+    private async Task GoBack()
+    {
+    // Call the JavaScript function to go back
+        await JSRuntime.InvokeVoidAsync("goBack");
+    }
+    
+    private async Task DeleteBooking()
+    {
+        if (_Booking != null)
+        {
+            bool success = await StudentService.DeleteBooking(_Booking.BookingId);
+            if (success)
+            {
+                Snackbar.Add("Booking canceled successfully.", Severity.Success);
+                _CheckIfHasBookedExam = false;
+                StateHasChanged();
+                NavManager.NavigateTo("/booking/selectexam", forceLoad: true); // Hard refresh
+            }
+            else
+            {
+                Snackbar.Add("Error canceling booking. Please try again.", Severity.Error);
+            }
+        }
+    }
+    
+    
     private async Task ConfirmingBooking()
     {
         var bookings = new Model.Booking()
@@ -148,6 +251,8 @@
             ExamId = selectedExam,
             BookingDate = selectedDate
         };
+
+
     
         await StudentService.SaveBooking(bookings);
 

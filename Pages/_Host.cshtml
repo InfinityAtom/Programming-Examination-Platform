@@ -11,6 +11,17 @@
         publicKey.user.id = Uint8Array.from(atob(publicKey.user.id), c => c.charCodeAt(0));
         return navigator.credentials.create({ publicKey: publicKey });
     }
+        function goBack() {
+            window.history.back();
+        }
+</script>
+<script>
+    function downloadFileFromBase64(filename, base64) {
+        var link = document.createElement('a');
+        link.href = 'data:application/octet-stream;base64,' + base64;
+        link.download = filename;
+        link.click();
+    }
 </script>
 <component type="typeof(App)" render-mode="Server" />
 

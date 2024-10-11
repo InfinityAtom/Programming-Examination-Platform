@@ -29,7 +29,7 @@ public partial class Studenti
 
     public string Groupa { get; set; } = null!;
 
-    public int Cheater { get; set; }
+    public int Passkey { get; set; }
 
     public int Blind { get; set; }
 

@@ -100,10 +100,12 @@
     private bool _isResendDisabled;
     private string Email { get; set; }
     private bool _isPageBlurred = false;
+    private bool isManualAccount = false;
 
     protected override async System.Threading.Tasks.Task OnInitializedAsync()
     {
         Email = await LocalStorage.GetItemAsync<string>("userEmail");
+        isManualAccount = bool.Parse(await LocalStorage.GetItemAsync<string>("isManualAccount"));
     }
 
     private async System.Threading.Tasks.Task VerifyCode()
@@ -114,7 +116,18 @@
         {
             _isPageBlurred = true; // Blur the page
             Snackbar.Add("Verification successful!", Severity.Success);
-            await RegisterPasskey();
+
+            if (isManualAccount)
+            {
+                // Redirect to phone confirmation page
+                
+                NavigationManager.NavigateTo("/confirmation-phone");
+            }
+            else
+            {
+                // Register Passkey or other next steps
+                await RegisterPasskey();
+            }
         }
         else
         {
@@ -158,6 +171,7 @@
             if (credential != null)
             {
                 Snackbar.Add("Successfully registered with Passkey! Redirecting...", Severity.Success);
+                
                 NavigationManager.NavigateTo("/complete-registration");
             }
             else
@@ -232,7 +246,7 @@
             color: white;
         }}
         .header img {{
-            max-width: 320px; /* Smaller size for higher quality rendering */
+            max-width: 320px;
             height: auto;
         }}
         .content {{

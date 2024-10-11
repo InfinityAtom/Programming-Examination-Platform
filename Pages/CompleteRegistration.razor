@@ -2,7 +2,6 @@
 @layout LoginLayout
 @using Programming_Examination_Platform.Model
 @using Microsoft.EntityFrameworkCore
-@using Task = System.Threading.Tasks.Task
 @using System.Security.Cryptography
 @using System.Text
 @using System.Runtime.CompilerServices
@@ -27,16 +26,16 @@
     }
 
     .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.8);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background-color: rgba(255, 255, 255, 0.8); 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        flex-direction: column; 
         z-index: 1000;
     }
 
@@ -82,31 +81,87 @@
         <MudCardContent Class="custom-card-content">
             <MudText Typo="Typo.h4">Register</MudText>
             <br/><br/>
-            <MudText Typo="Typo.h6">Welcome, @Email ! <br/> Please complete the registration process, in order to continue</MudText>
-            <MudTextField T="string" Label="Phone Number" @bind-Value="@PhoneNumber" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" AdornmentColor="Color.Primary"/>
+            <MudText Typo="Typo.h6">Welcome, @Email! <br/> Please complete the registration process, in order to continue</MudText>
+
+            <!-- Country Code Selector -->
+            <MudStack Spacing="5" Row="true">
+                <!-- Country Code Selector -->
+                <MudSelect @bind-Value="selectedCountryCode" Label="Country" Style="width: 200px;" AnchorOrigin="Origin.TopLeft">
+                    @foreach (var country in countryCodes)
+                    {
+                        <MudSelectItem Value="@(country.Code)">
+                            <MudText Typo="Typo.caption" Align="Align.Left">
+                                @country.Flag @country.Name
+                            </MudText>
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            
+                <!-- Phone Number Input -->
+                <MudTextField T="string"
+                              Label="Phone Number"
+                              @bind-Value="PhoneNumber"
+                              Required="true"
+                              Adornment="Adornment.Start"
+                              AdornmentText="@selectedCountryCode"
+                              Style="flex-grow: 1;"/>
+            </MudStack>
+
             <MudTextField T="string" Label="Last name" HelperText="Last name" @bind-Value="@Numele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
             <MudTextField T="string" Label="First name" HelperText="First name" @bind-Value="@Prenumele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
             <MudTextField T="string" Label="Faculty" @bind-Value="@Facultatea" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.School" AdornmentColor="Color.Primary"/>
-            <MudAutocomplete T="Specialization" Label="Specialization" @bind-Value="selectedSpecialization" Items="specializations" ToStringFunc="@(x => x.SpecializationName)" SearchFunc="@SearchSpecializations" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Book" AdornmentColor="Color.Primary"></MudAutocomplete>
+            <MudAutocomplete T="Specialization"
+                             Label="Specialization"
+                             @bind-Value="selectedSpecialization"
+                             Items="specializations"
+                             ToStringFunc="@(x => x.SpecializationName)"
+                             SearchFunc="@SearchSpecializations"
+                             Adornment="Adornment.Start"
+                             AdornmentIcon="@Icons.Material.Filled.Book"
+                             AdornmentColor="Color.Primary"/>
             <MudAutocomplete T="Proctor"
                              Label="Proctor Email"
                              @bind-Value="selectedProctor"
                              Items="proctors"
                              ToStringFunc="@(x => x.Email)"
                              SearchFunc="@SearchProctorsByEmail"
-                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.SupervisedUserCircle" AdornmentColor="Color.Primary">
-            </MudAutocomplete>
-            <MudTextField T="string" Label="Year" HelperText="" @bind-Value="@Anul" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled._2k" AdornmentColor="Color.Primary"/>
-            <MudTextField T="string" Label="Group" HelperText="" @bind-Value="@Grupa" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.PeopleAlt" AdornmentColor="Color.Primary"/>
+                             Adornment="Adornment.Start"
+                             AdornmentIcon="@Icons.Material.Filled.SupervisedUserCircle"
+                             AdornmentColor="Color.Primary"/>
+            <MudTextField T="string"
+                          Label="Year"
+                          HelperText=""
+                          @bind-Value="@Anul"
+                          Required="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled._2k"
+                          AdornmentColor="Color.Primary"/>
+            <MudTextField T="string"
+                          Label="Group"
+                          HelperText=""
+                          @bind-Value="@Grupa"
+                          Required="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.PeopleAlt"
+                          AdornmentColor="Color.Primary"/>
             <br/><br/>
-            <MudAlert Icon="@Icons.Material.Filled.Accessibility" Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center">Accessibility Zone</MudAlert>
-            <MudSwitch Size="Size.Large" @bind-Checked="@blindCheck"
+            <MudAlert Icon="@Icons.Material.Filled.Accessibility"
+                      Severity="Severity.Info"
+                      ContentAlignment="HorizontalAlignment.Center">
+                Accessibility Zone
+            </MudAlert>
+            <MudSwitch Size="Size.Large"
+                       @bind-Checked="@blindCheck"
                        ThumbIcon="@(blindCheck == true ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
                        ThumbIconColor="@(blindCheck == true ? Color.Primary : Color.Default)">
                 Blind Student? <b> @(blindCheck ? "Yes" : "No")</b>
             </MudSwitch>
 
-            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PersonAddAlt1" FullWidth="true" Color="Color.Primary" OnClick="@OnRegisterButtonClick">Continue</MudButton>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.PersonAddAlt1"
+                       FullWidth="true"
+                       Color="Color.Primary"
+                       OnClick="@OnRegisterButtonClick">Continue</MudButton>
             <br/><br/>
         </MudCardContent>
     </MudCard>
@@ -117,12 +172,14 @@
 <br />
 @code {
     private bool blindCheck { get; set; }
-    private bool _checked3 = false;
+    private bool isLoading = false;
     private List<Specialization> specializations = new();
     private Specialization selectedSpecialization;
     private List<Proctor> proctors = new();
     private Proctor selectedProctor;
+    private string selectedCountryCode = "+40"; // Default to US code
 
+    
     private string Email { get; set; }
     private string Parola { get; set; }
     private string RepeatPassword { get; set; }
@@ -131,23 +188,77 @@
     private string Facultatea { get; set; }
     private string Anul { get; set; }
     private string Grupa { get; set; }
-    private int Cheater = 0;
-    private bool PasswordsMatch => Parola == RepeatPassword;
+    private string PhoneNumber { get; set; } = string.Empty;
+    private bool PhoneNumberVerified { get; set; } = false;
     private string message = "";
     private int alert = 0;
-    private int proctorID;
-    private bool isLoading = false;
-    private string PhoneNumber { get; set; }
-    private bool PhoneNumberVerified { get; set; } = false;
-    
-    protected override async Task OnInitializedAsync()
+
+    private List<CountryCode> countryCodes = new List<CountryCode>
+    {
+        new CountryCode { Code = "+40", Name = "Romania", Flag = "🇷🇴" },
+    new CountryCode { Code = "+33", Name = "France", Flag = "🇫🇷" },
+    new CountryCode { Code = "+49", Name = "Germany", Flag = "🇩🇪" },
+    new CountryCode { Code = "+34", Name = "Spain", Flag = "🇪🇸" },
+    new CountryCode { Code = "+39", Name = "Italy", Flag = "🇮🇹" },
+    new CountryCode { Code = "+47", Name = "Norway", Flag = "🇳🇴" },
+    new CountryCode { Code = "+45", Name = "Denmark", Flag = "🇩🇰" },
+    new CountryCode { Code = "+46", Name = "Sweden", Flag = "🇸🇪" },
+    new CountryCode { Code = "+41", Name = "Switzerland", Flag = "🇨🇭" },
+    new CountryCode { Code = "+43", Name = "Austria", Flag = "🇦🇹" },
+    new CountryCode { Code = "+32", Name = "Belgium", Flag = "🇧🇪" },
+    new CountryCode { Code = "+359", Name = "Bulgaria", Flag = "🇧🇬" },
+    new CountryCode { Code = "+357", Name = "Cyprus", Flag = "🇨🇾" },
+    new CountryCode { Code = "+420", Name = "Czech Republic", Flag = "🇨🇿" },
+    new CountryCode { Code = "+45", Name = "Denmark", Flag = "🇩🇰" },
+    new CountryCode { Code = "+372", Name = "Estonia", Flag = "🇪🇪" },
+    new CountryCode { Code = "+358", Name = "Finland", Flag = "🇫🇮" },
+    new CountryCode { Code = "+30", Name = "Greece", Flag = "🇬🇷" },
+    new CountryCode { Code = "+36", Name = "Hungary", Flag = "🇭🇺" },
+    new CountryCode { Code = "+354", Name = "Iceland", Flag = "🇮🇸" },
+    new CountryCode { Code = "+353", Name = "Ireland", Flag = "🇮🇪" },
+    new CountryCode { Code = "+371", Name = "Latvia", Flag = "🇱🇻" },
+    new CountryCode { Code = "+370", Name = "Lithuania", Flag = "🇱🇹" },
+    new CountryCode { Code = "+352", Name = "Luxembourg", Flag = "🇱🇺" },
+    new CountryCode { Code = "+356", Name = "Malta", Flag = "🇲🇹" },
+    new CountryCode { Code = "+31", Name = "Netherlands", Flag = "🇳🇱" },
+    new CountryCode { Code = "+47", Name = "Norway", Flag = "🇳🇴" },
+    new CountryCode { Code = "+48", Name = "Poland", Flag = "🇵🇱" },
+    new CountryCode { Code = "+351", Name = "Portugal", Flag = "🇵🇹" },
+    new CountryCode { Code = "+40", Name = "Romania", Flag = "🇷🇴" },
+    new CountryCode { Code = "+421", Name = "Slovakia", Flag = "🇸🇰" },
+    new CountryCode { Code = "+386", Name = "Slovenia", Flag = "🇸🇮" },
+    new CountryCode { Code = "+386", Name = "Slovenia", Flag = "🇸🇮" },
+    new CountryCode { Code = "+386", Name = "Slovenia", Flag = "🇸🇮" },
+    new CountryCode { Code = "+381", Name = "Serbia", Flag = "🇷🇸" },
+    new CountryCode { Code = "+386", Name = "Slovenia", Flag = "🇸🇮" },
+    new CountryCode { Code = "+34", Name = "Spain", Flag = "🇪🇸" },
+    new CountryCode { Code = "+46", Name = "Sweden", Flag = "🇸🇪" },
+    new CountryCode { Code = "+41", Name = "Switzerland", Flag = "🇨🇭" },
+    new CountryCode { Code = "+380", Name = "Ukraine", Flag = "🇺🇦" },
+    new CountryCode { Code = "+355", Name = "Albania", Flag = "🇦🇱" },
+    new CountryCode { Code = "+374", Name = "Armenia", Flag = "🇦🇲" },
+    new CountryCode { Code = "+375", Name = "Belarus", Flag = "🇧🇾" },
+    new CountryCode { Code = "+387", Name = "Bosnia and Herzegovina", Flag = "🇧🇦" },
+    new CountryCode { Code = "+389", Name = "North Macedonia", Flag = "🇲🇰" },
+    new CountryCode { Code = "+423", Name = "Liechtenstein", Flag = "🇱🇮" },
+    new CountryCode { Code = "+373", Name = "Moldova", Flag = "🇲🇩" },
+    new CountryCode { Code = "+382", Name = "Montenegro", Flag = "🇲🇪" },
+    new CountryCode { Code = "+377", Name = "Monaco", Flag = "🇲🇨" },
+    new CountryCode { Code = "+7", Name = "Russia", Flag = "🇷🇺" },
+    new CountryCode { Code = "+378", Name = "San Marino", Flag = "🇸🇲" },
+    new CountryCode { Code = "+381", Name = "Serbia", Flag = "🇷🇸" },
+    new CountryCode { Code = "+90", Name = "Turkey", Flag = "🇹🇷" },
+    new CountryCode { Code = "+379", Name = "Vatican City", Flag = "🇻🇦" },
+    new CountryCode { Code = "+48", Name = "Poland", Flag = "🇵🇱" }
+    // Add other countries as needed
+    };
+
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
     {
         Email = await LocalStorage.GetItemAsync<string>("userEmail");
         specializations = await DbContext.Specializations.ToListAsync();
         proctors = await DbContext.Proctors.ToListAsync();
     }
-
-   
 
     private static string ComputeSha256Hash(string rawData)
     {
@@ -155,7 +266,7 @@
         {
             byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
             StringBuilder builder = new StringBuilder();
-            for (int i = 0; bytes.Length > i; i++)
+            for (int i = 0; i < bytes.Length; i++)
             {
                 builder.Append(bytes[i].ToString("x2"));
             }
@@ -163,32 +274,135 @@
         }
     }
 
-    private async Task<IEnumerable<Specialization>> SearchSpecializations(string value)
+    private async System.Threading.Tasks.Task<IEnumerable<Specialization>> SearchSpecializations(string value)
     {
-        await Task.Delay(5);
+        await System.Threading.Tasks.Task.Delay(5);
         if (string.IsNullOrEmpty(value))
             return specializations;
         return specializations.Where(s => s.SpecializationName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
-    private async Task<IEnumerable<Proctor>> SearchProctorsByEmail(string value)
+    private async System.Threading.Tasks.Task<IEnumerable<Proctor>> SearchProctorsByEmail(string value)
     {
-        await Task.Delay(5);
+        await System.Threading.Tasks.Task.Delay(5);
         if (string.IsNullOrEmpty(value))
             return proctors;
         return proctors.Where(p => p.Email.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
-private async Task SubmitForm()
+    private async System.Threading.Tasks.Task SubmitForm()
+    {
+        try
+        {
+            message = string.Empty;
+            alert = 1;
+
+            if (string.IsNullOrWhiteSpace(Numele) ||
+                string.IsNullOrWhiteSpace(Prenumele) ||
+                string.IsNullOrWhiteSpace(Facultatea) ||
+                string.IsNullOrWhiteSpace(PhoneNumber) ||
+                selectedSpecialization == null ||
+                string.IsNullOrWhiteSpace(Anul) ||
+                string.IsNullOrWhiteSpace(Grupa))
+            {
+                message = "All fields are required!";
+                return;
+            }
+
+            var existingUser = await DbContext.Studentis.FirstOrDefaultAsync(s => s.Email == Email);
+            if (existingUser != null)
+            {
+                message = "Account with the provided email already exists!";
+                return;
+            }
+
+            var textbeltService = new TextbeltService();
+            string verificationCode = GenerateVerificationCode();
+            string fullPhoneNumber = "";
+            if (selectedCountryCode == "+40" && PhoneNumber.StartsWith("0"))
+            {
+               fullPhoneNumber = selectedCountryCode + PhoneNumber.Substring(1);
+            }
+            else
+            {
+               fullPhoneNumber = selectedCountryCode + PhoneNumber;
+            }
+
+            
+            
+            await textbeltService.SendSmsAsync(fullPhoneNumber, $"Your PeP verification code is: {verificationCode}.", "9d7e41689b9ba30ac7aed19c8198ac24a1f63be8Smxxwb3hIaVWlBGxbeW9gcsa3");
+
+            // Store the verification code temporarily
+            await LocalStorage.SetItemAsync("PhoneVerificationCode", verificationCode);
+
+            // Prompt user to enter the verification code sent via SMS
+            bool codeVerified = await VerifyPhoneNumber(verificationCode);
+            if (!codeVerified)
+            {
+                message = "Phone number verification failed!";
+                return;
+            }
+
+            // If phone number is verified, continue with registration
+            var passkeyUser = await LocalStorage.GetItemAsync<int>("passkeyUser");
+            Studenti newStudent = new Studenti
+            {
+                Email = Email,
+                Password = ComputeSha256Hash("Pa$$k3yS3cur3dP@$$w0rd"),
+                FirstName = Prenumele,
+                LastName = Numele,
+                Faculty = Facultatea,
+                SpecializationId = selectedSpecialization.SpecializationId,
+                ProctorId = selectedProctor.ProctorId,
+                Year = Anul,
+                Groupa = Grupa,
+                Blind = blindCheck ? 1 : 0,
+                Passkey = passkeyUser,
+                PhoneNumber = fullPhoneNumber,
+                PhoneNumberVerified = "1"
+            };
+
+            DbContext.Studentis.Add(newStudent);
+            await DbContext.SaveChangesAsync();
+            await LocalStorage.SetItemAsync("userID", newStudent.StudnetId);
+            await LocalStorage.SetItemAsync("StudentsProctorId", newStudent.ProctorId);
+
+            message = "Successfully registered! Redirecting...";
+            alert = 0;
+            NavigationManager.NavigateTo("/indexStudent");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            message = "An error occurred while registering! Please try again later.";
+        }
+    }
+
+    private async System.Threading.Tasks.Task<bool> VerifyPhoneNumber(string verificationCode)
+    {
+        string userInputCode = await PromptUserForCode();
+        return verificationCode == userInputCode;
+    }
+
+private async System.Threading.Tasks.Task OnRegisterButtonClick()
 {
+    isLoading = true;
+
     try
     {
         message = string.Empty;
         alert = 1;
 
-        if (string.IsNullOrWhiteSpace(Numele) || string.IsNullOrWhiteSpace(Prenumele) || string.IsNullOrWhiteSpace(Facultatea) || string.IsNullOrWhiteSpace(PhoneNumber) || selectedSpecialization == null || string.IsNullOrWhiteSpace(Anul) || string.IsNullOrWhiteSpace(Grupa))
+        if (string.IsNullOrWhiteSpace(Numele) ||
+            string.IsNullOrWhiteSpace(Prenumele) ||
+            string.IsNullOrWhiteSpace(Facultatea) ||
+            string.IsNullOrWhiteSpace(PhoneNumber) ||
+            selectedSpecialization == null ||
+            string.IsNullOrWhiteSpace(Anul) ||
+            string.IsNullOrWhiteSpace(Grupa))
         {
             message = "All fields are required!";
+            Snackbar.Add(message, Severity.Error);
             return;
         }
 
@@ -196,91 +410,60 @@ private async Task SubmitForm()
         if (existingUser != null)
         {
             message = "Account with the provided email already exists!";
+            Snackbar.Add(message, Severity.Error);
             return;
         }
-
-        var textbeltService = new TextbeltService();
 
         string verificationCode = GenerateVerificationCode();
+        string fullPhoneNumber = selectedCountryCode + PhoneNumber.TrimStart('0');
 
-        // Replace "your_actual_api_key_here" with your actual Textbelt API key
-        await textbeltService.SendSmsAsync(PhoneNumber, $"Your PeP verification code is: {verificationCode}.", "9d7e41689b9ba30ac7aed19c8198ac24a1f63be8Smxxwb3hIaVWlBGxbeW9gcsa3");
+        // Send verification code via SMS
+        var textbeltService = new TextbeltService();
+        await textbeltService.SendSmsAsync(fullPhoneNumber, $"Your PeP verification code is: {verificationCode}.", "9d7e41689b9ba30ac7aed19c8198ac24a1f63be8Smxxwb3hIaVWlBGxbeW9gcsa3");
 
-        // Store the verification code temporarily
+        // Store the user details and verification code temporarily
+        await LocalStorage.SetItemAsync("userEmail", Email);
+        await LocalStorage.SetItemAsync("userFirstName", Prenumele);
+        await LocalStorage.SetItemAsync("userPassword", "Pa$$k3yS3cur3dP@$$w0rd");
+        await LocalStorage.SetItemAsync("userLastName", Numele);
+        await LocalStorage.SetItemAsync("userFaculty", Facultatea);
+        await LocalStorage.SetItemAsync("userSpecializationId", selectedSpecialization.SpecializationId.ToString());
+        await LocalStorage.SetItemAsync("userProctorId", selectedProctor?.ProctorId.ToString());
+        await LocalStorage.SetItemAsync("userYear", Anul);
+        await LocalStorage.SetItemAsync("userGroup", Grupa);
+        await LocalStorage.SetItemAsync("userBlindCheck", blindCheck ? 1 : 0 );
+        await LocalStorage.SetItemAsync("userPhoneNumber", fullPhoneNumber);
         await LocalStorage.SetItemAsync("PhoneVerificationCode", verificationCode);
 
-        // Prompt user to enter the verification code sent via SMS
-        bool codeVerified = await VerifyPhoneNumber(verificationCode);
-        if (!codeVerified)
-        {
-            message = "Phone number verification failed!";
-            return;
-        }
-
-        // If phone number is verified, continue with registration
-        Studenti newStudent = new Studenti
-        {
-            Email = Email,
-            Password = ComputeSha256Hash("Pa$$k3yS3cur3dP@$$w0rd"),
-            FirstName = Prenumele,
-            LastName = Numele,
-            Faculty = Facultatea,
-            SpecializationId = selectedSpecialization.SpecializationId,
-            ProctorId = selectedProctor.ProctorId,
-            Year = Anul,
-            Groupa = Grupa,
-            Blind = blindCheck ? 1 : 0,
-            Cheater = 0,
-            PhoneNumber = PhoneNumber,
-            PhoneNumberVerified = "1" // Mark the phone number as verified
-        };
-
-        DbContext.Studentis.Add(newStudent);
-        await DbContext.SaveChangesAsync();
-        await LocalStorage.SetItemAsync("userID", newStudent.StudnetId);
-        await LocalStorage.SetItemAsync("StudentsProctorId", newStudent.ProctorId);
-
-        message = "Successfully registered! Redirecting...";
-        alert = 0;
-        NavigationManager.NavigateTo("/indexStudent");
+        // Redirect to phone confirmation page
+        NavigationManager.NavigateTo("/confirmation-phone");
     }
     catch (Exception ex)
     {
         Console.WriteLine(ex.Message);
         message = "An error occurred while registering! Please try again later.";
+        Snackbar.Add(message, Severity.Error);
+    }
+    finally
+    {
+        isLoading = false;
     }
 }
 
-
-
-
-private async Task<bool> VerifyPhoneNumber(string verificationCode)
+private string GenerateVerificationCode()
 {
-    // Prompt user to enter the verification code sent via SMS
-    string userInputCode = await PromptUserForCode();
-
-    return verificationCode == userInputCode;
+    var random = new Random();
+    return random.Next(100000, 999999).ToString();
 }
 
-    private string GenerateVerificationCode()
+
+    private async System.Threading.Tasks.Task<string> PromptUserForCode()
     {
-        var random = new Random();
-        return random.Next(100000, 999999).ToString();
-    }
-    private async Task<string> PromptUserForCode()
-    {
-    // You can replace this with a proper dialog or UI prompt in your Blazor application.
         var result = await JSRuntime.InvokeAsync<string>("prompt", "Enter the verification code sent to your phone:");
         return result;
     }
 
-    private async Task OnRegisterButtonClick()
-    {
-        isLoading = true;
-        await SubmitForm();
-        HandleSnackbar();
-        isLoading = false;
-    }
+    
 
     private void HandleSnackbar()
     {
@@ -292,5 +475,12 @@ private async Task<bool> VerifyPhoneNumber(string verificationCode)
         {
             Snackbar.Add(message, Severity.Error);
         }
+    }
+
+    public class CountryCode
+    {
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public string Flag { get; set; }
     }
 }

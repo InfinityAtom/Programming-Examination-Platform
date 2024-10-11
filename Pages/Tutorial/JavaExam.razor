@@ -4,131 +4,413 @@
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject StudentService StudentService
 @inject NavigationManager NavManager;
-<PageTitle>Exam tutorials/JavaExam</PageTitle>
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Exam Tutorials - Java Exam</PageTitle>
+
 <MudLayout>
-  <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
-    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
-    <div style="padding: 10px; display: flex; align-items: center;">
-      <img src="images/header.png" style="max-height: 50px; max-width: 201px;"/>
-    </div>
-    <MudSpacer/>
-    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit"/>
-    <MudText Typo="Typo.h6">@userEmail</MudText>
-  </MudAppBar>
-  <MudDrawer @bind-Open="@open" Elevation="0">
-    <MudNavMenu>
-      <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
-      <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
-      <MudDivider Class="my-2"/>
-      <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-      <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
-      <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
-      <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
-      <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.Settings" Expanded="true">
-        <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
-      </MudNavGroup>
-      <MudDivider Class="my-2"/>
-      <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
-    </MudNavMenu>
-  </MudDrawer>
-  <MudMainContent Class="pt-16 px-16">
-    <MudContainer Class="mt-6">
-      <br/><br/>
-      <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
-        <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
-          <ItemContent>
-            <MudAlert Severity="Severity.Success">Select an exam</MudAlert>
-          </ItemContent>
-        </MudTimelineItem>
-        <MudTimelineItem Color="Color.Info" Variant="Variant.Filled">
-          <ItemContent>
-            <MudAlert Severity="Severity.Info">See the tutorial</MudAlert>
-          </ItemContent>
-        </MudTimelineItem>
+    <!-- AppBar -->
+    <MudAppBar Color="Color.Primary" Fixed="true" Elevation="0">
+             <!-- Left Section: Back Button, Menu Button, Logo, and Page Title -->
+             <div style="display: flex; align-items: center;">
+                 <!-- Back Button -->
+                 <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit" OnClick="@GoBack" />
+                 
+                 <!-- Menu Button -->
+                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@ToggleDrawer" />
+         
+                 <!-- Logo and Page Title -->
+                 <div style="display: flex; align-items: center; margin-left: 10px;">
+                     <img src="images/header.png" alt="Logo" style="max-height: 50px; max-width: 201px; margin-right: 30px;" />
+                     <MudText Typo="Typo.h6" Color="Color.Inherit">The Exam Tutorial for: JavaExam</MudText>
+                 </div>
+             </div>
+         
+             <!-- Right Section: Spacer, Account Icon, User Email, and Settings Icon -->
+             <div style="display: flex; align-items: center; margin-left: auto;">
+                 <!-- Account Icon -->
+                 <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" />
+                 
+                 <!-- User Email -->
+                 <MudText Typo="Typo.h6" Class="ml-2" Color="Color.Inherit">@userEmail</MudText>
+                 
+                 <!-- Settings Icon -->
+                 <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" />
+             </div>
+         </MudAppBar>
 
-      </MudTimeline>
-      <br/><br/>
-      <MudText Typo="Typo.h2">JavaExam Tutorial</MudText>
-      <br/><br/>
-      <MudStack Spacing="15" Row="true">
+    
+    <!-- Sidebar Navigation -->
+    <MudDrawer @bind-Open="@open" Elevation="2" Class="drawer-background">
+        <MudNavMenu>
+            <MudText Typo="Typo.h6" Class="px-4">Programming Examination Platform</MudText>
+            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Student Account</MudText>
+            <MudDivider Class="my-2" />
+            <MudNavLink Href="/indexStudent" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+            <MudNavLink Href="/booking/selectexam" Icon="@Icons.Material.Filled.CalendarMonth">Booking</MudNavLink>
+            <MudNavLink Href="/results" Icon="@Icons.Material.Filled.LibraryAddCheck">Results</MudNavLink>
+            <MudNavLink Href="/scoreboard" Icon="@Icons.Material.Filled.SupervisedUserCircle">Scoreboard</MudNavLink>
+            <MudNavGroup Title="Tutorials" Icon="@Icons.Material.Filled.Settings" Expanded="true">
+                <MudNavLink Href="/tutorials/javaexam" Icon="@Icons.Material.Filled.Airplay" IconColor="Color.Success">JavaExam</MudNavLink>
+            </MudNavGroup>
+            <MudDivider Class="my-2" />
+            <MudNavLink OnClick="OnLogoutButtonClick" Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error">Log Out</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
 
-        <MudCarousel Style="height: 720px; width: 1280px; zoom: 100%" ShowArrows="@arrows" ShowBullets="@bullets" TData="object">
-          <MudCarouselItem Transition=Transition.Slide Color="@Color.Primary">
-            <div style="height:100%">
-              <img class="mx-auto my-auto" src="images/Slide1.PNG"/>
+    <!-- Main Content -->
+    <MudMainContent Class="main-content">
+            <br/><br/><br/><br/>
+            <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+                <!-- "Select an exam" step marked as success -->
+                <MudTimelineItem Color="Color.Success" Variant="Variant.Filled">
+                    <ItemContent>
+                        <MudAlert Severity="Severity.Success">Select an exam</MudAlert>
+                    </ItemContent>
+                </MudTimelineItem>
+                
+                <!-- "See the tutorial" step as default -->
+                <MudTimelineItem Color="Color.Default" Variant="Variant.Filled">
+                    <ItemContent>
+                        <MudAlert Severity="Severity.Normal">See the tutorial</MudAlert>
+                    </ItemContent>
+                </MudTimelineItem>
+            </MudTimeline>
+            <br/><br/>
+        <!-- Section 1: Welcome -->
+        <section class="tutorial-section tutorial-block" style="display: @(currentStep == 0 ? "flex" : "none");">
+            <div class="tutorial-content">
+                <img src="/images/tutorial/welcome.png" alt="Welcome Image" class="tutorial-image-left"/>
+                <div class="tutorial-text">
+                    <h1>Welcome to PEP – Java Exam</h1>
+                    <p>In this exam, you will work on a Java project in which you will have to execute 4 requirements:</p>
+                    <ul>
+                        <li>Reading from a file in a Java collection</li>
+                        <li>Sorting objects by certain criteria</li>
+                        <li>Working with threads</li>
+                    </ul>
+                    <p>You will work with the IntelliJ IDEA program (Process idea64.exe).</p>
+                    <p>During the exam, press "Save (CTRL+S)" frequently to avoid inconveniences. Use "Restart Project" cautiously as it resets your project to the initial state. After completing the exam, save the project and close IntelliJ before pressing "Submit Project."</p>
+                </div>
             </div>
-          </MudCarouselItem>
-          <MudCarouselItem Transition=Transition.Slide Color="@Color.Secondary">
-            <div style="height:100%">
-              <img src="images/Slide2.PNG"/>
+            <div class="nav-buttons">
+                <MudButton Variant="Variant.Outlined" Disabled="@(currentStep == 0)" OnClick="PreviousStep" Class="nav-btn">Previous</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="NextStep" Class="nav-btn">Next</MudButton>
             </div>
-          </MudCarouselItem>
-          <MudCarouselItem Transition=Transition.Slide>
-            <div class="d-flex" style="height:100%">
-              <img src="images/Slide3.PNG"/>
+
+        </section>
+
+        <!-- Section 2: Exam Interface -->
+        <section class="tutorial-section tutorial-block" style="display: @(currentStep == 1 ? "flex" : "none");">
+            <div class="tutorial-content-centered">
+                <h1>Exam Interface</h1>
+                <p>This is the IDE where you write, test, and compile your code. The Exam Window helps you navigate tasks and track progress.</p>
+                <img src="/images/tutorial/exam_interface.png" alt="Exam Interface Image" class="tutorial-image-smaller"/>
             </div>
-          </MudCarouselItem>
-          <MudCarouselItem Transition=Transition.Slide>
-            <div style="height:100%">
-              <img src="images/Slide4.PNG"/>
+            <div class="nav-buttons">
+                <MudButton Variant="Variant.Outlined" OnClick="PreviousStep" Class="nav-btn">Previous</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="NextStep" Class="nav-btn">Next</MudButton>
             </div>
-          </MudCarouselItem>
-          <MudCarouselItem Transition=Transition.Slide>
-            <div style="height:100%">
-              <img src="images/Slide5.PNG"/>
+
+        </section>
+
+        <!-- Section 3: Task Navigation -->
+        <section class="tutorial-section tutorial-block" style="display: @(currentStep == 2 ? "flex" : "none");">
+            <div class="tutorial-content-centered">
+                <h1>Task Navigation</h1>
+                <p>Use the 4 buttons to navigate tasks. Icons indicate task status: completed, feedback required, or needs review.</p>
+                <img src="/images/tutorial/task_navigation.png" alt="Task Navigation Image" class="tutorial-image-smaller"/>
             </div>
-          </MudCarouselItem>
-          <MudCarouselItem Transition=Transition.Slide>
-            <div style="height:100%">
-              <img src="images/Slide6.PNG"/>
+            <div class="nav-buttons">
+                <MudButton Variant="Variant.Outlined" OnClick="PreviousStep" Class="nav-btn">Previous</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="NextStep" Class="nav-btn">Next</MudButton>
             </div>
-          </MudCarouselItem>
-        </MudCarousel>
-        <MudSpacer/>
-      </MudStack>
-      <br/><br/><br/><br/><br/>
-    </MudContainer>
-  </MudMainContent>
+
+        </section>
+
+        <!-- Section 4: Marking Tasks -->
+        <section class="tutorial-section tutorial-block" style="display: @(currentStep == 3 ? "flex" : "none");">
+            <div class="tutorial-content-centered">
+                <h1>Marking Tasks</h1>
+                <p>Mark tasks as completed, for feedback, or for review using the buttons below the task descriptions.</p>
+                <img src="/images/tutorial/marking_tasks.png" alt="Marking Tasks Image" class="tutorial-image-smaller"/>
+            </div>
+            <div class="nav-buttons">
+                <MudButton Variant="Variant.Outlined" OnClick="PreviousStep" Class="nav-btn">Previous</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="NextStep" Class="nav-btn">Next</MudButton>
+            </div>
+
+        </section>
+
+        <!-- Section 5: Submit / Restart Project -->
+        <section class="tutorial-section tutorial-block" style="display: @(currentStep == 4 ? "flex" : "none");">
+            <div class="tutorial-content-centered">
+                <h1>Submit / Restart Project</h1>
+                <p>In the upper right-hand corner of the exam window, there are two useful buttons:</p>
+                <ul>
+                    <li><strong>Restart Project:</strong> Resets your exam folder to the beginning. Use it with caution as it will not reset the timer and will delete every class written.</li>
+                    <li><strong>Submit Project:</strong> Submits your whole work, and you will no longer be able to modify any class you've written. Save everything before pressing this button.</li>
+                </ul>
+                <img src="/images/tutorial/submit_restart.png" alt="Submit/Restart Project Image" class="tutorial-image-smaller"/>
+            </div>
+            <div class="nav-buttons">
+                <MudButton Variant="Variant.Outlined" OnClick="PreviousStep" Class="nav-btn">Previous</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="NextStep" Class="nav-btn">Next</MudButton>
+            </div>
+
+        </section>
+
+        <!-- Section 6: Helpful Tools -->
+        <section class="tutorial-section tutorial-block" style="display: @(currentStep == 5 ? "flex" : "none");">
+            <div class="tutorial-content-centered">
+                <h1>Helpful Tools</h1>
+                <p>In the exam interface, there are two helpful buttons you can use during your tasks:</p>
+                <ul>
+                    <li><strong>Check Overview:</strong> This button provides an overview of the four tasks you will need to complete during the exam. It helps you understand what to expect and plan your approach accordingly.</li>
+                    <li><strong>View the CSV file:</strong> This button opens a window displaying the data file you will work with during the exam. The file is read-only and contains all the necessary data for your tasks.</li>
+                </ul>
+                <img src="/images/tutorial/helpful_tools.png" alt="Helpful Tools Image" class="tutorial-image-smaller"/>
+            </div>
+            <div class="nav-buttons">
+                <MudButton Variant="Variant.Outlined" OnClick="PreviousStep" Class="nav-btn">Previous</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="NextStep" Class="nav-btn">Next</MudButton>
+            </div>
+        </section>
+
+
+        <!-- Section 7: Exam Rules -->
+        <section class="tutorial-section tutorial-block" style="display: @(currentStep == 6 ? "flex" : "none");">
+            <div class="tutorial-content">
+                <img src="/images/tutorial/welcome.png" alt="Exam Rules Image" class="tutorial-image-left"/>
+                <div class="tutorial-text">
+                    <h1>Exam Rules</h1>
+                    <p>During the exam, certain items and actions are prohibited:</p>
+                    <ul>
+                        <li>Cell phones, laptops, smart watches, headphones, papers, writing devices, tablets.</li>
+                        <li>Accessing communication and social networks.</li>
+                        <li>Using any AI program that facilitates instant code writing.</li>
+                        <li>Communicating with other students or leaving the exam room early.</li>
+                    </ul>
+                    <p>Failure to comply will result in disqualification. You are allowed to use the internet to search for information related to the tasks.</p>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <MudButton Variant="Variant.Outlined" OnClick="PreviousStep" Class="nav-btn">Previous</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="NextStep" Class="nav-btn">Next</MudButton>
+            </div>
+
+        </section>
+
+        <!-- Section 8: Thank You -->
+        <section class="tutorial-section tutorial-block" style="display: @(currentStep == 7 ? "flex" : "none");">
+            <div class="tutorial-content">
+                <img src="/images/tutorial/welcome.png" alt="Welcome Image" class="tutorial-image-left"/>
+                <div class="tutorial-text">
+                    <h1>Thank You</h1>
+                    <p>You've completed the tutorial! Click "Start Exam" when ready.</p>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <MudButton Variant="Variant.Outlined" OnClick="PreviousStep" Class="nav-btn">Previous</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="NextStep" Class="nav-btn">Next</MudButton>
+            </div>
+
+        </section>
+        <br/><br/><br/><br/><br/><br/><br/>
+    </MudMainContent>
 </MudLayout>
 
-@code
-{
-  bool open = false;
+@code {
+    private bool open = false;
+    private int currentStep = 0;
+    private int userID;
+    private string userEmail;
+    private string _userRole;
 
-  void ToggleDrawer()
-  {
-    open = !open;
-  }
-  private int userID;
-  private string userEmail;
-  private bool arrows = true;
-  private bool bullets = true;
-  private string _userRole;
-
-  protected override async Task OnInitializedAsync()
-  {
-    userID = await LocalStorage.GetItemAsync<int>("userID");
-    _userRole = await LocalStorage.GetItemAsync<string>("userRole");
-
-  // Check if user is a student or if no role is set.
-    if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin")
+    private void ToggleDrawer()
     {
-      NavManager.NavigateTo("/loginStudent");
-      return;
+        open = !open;
     }
-    if (userID == -1) // or another value that represents "no ID"
+
+    private void NextStep()
     {
-      NavManager.NavigateTo("/loginStudent");
-      return;
+        if (currentStep < 7)
+        {
+            currentStep++;
+        }
     }
-    var student = await StudentService.GetStudentById(userID);
-    userEmail = student?.Email ?? "Email not found";
-  }
+    private async Task GoBack()
+    {
+    // Call the JavaScript function to go back
+        await JSRuntime.InvokeVoidAsync("goBack");
+    }
+    private void PreviousStep()
+    {
+        if (currentStep > 0)
+        {
+            currentStep--;
+        }
+    }
 
-  private async Task OnLogoutButtonClick()
-  {
-    await LocalStorage.SetItemAsync("userID", -1);
-    NavManager.NavigateTo("/loginStudent");
-  }
+    protected override async Task OnInitializedAsync()
+    {
+        userID = await LocalStorage.GetItemAsync<int>("userID");
+        _userRole = await LocalStorage.GetItemAsync<string>("userRole");
 
+        if (string.IsNullOrEmpty(_userRole) || _userRole == "Admin" || userID == -1)
+        {
+            NavManager.NavigateTo("/loginStudent");
+            return;
+        }
+
+        var student = await StudentService.GetStudentById(userID);
+        userEmail = student?.Email ?? "Email not found";
+    }
+
+    private async Task OnLogoutButtonClick()
+    {
+        await LocalStorage.SetItemAsync("userID", -1);
+        NavManager.NavigateTo("/loginStudent");
+    }
 }
+
+<style>
+/* General Page Styles */
+body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    color: #333;
+}
+
+.app-bar-title {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.header-img {
+    max-height: 50px;
+    max-width: 201px;
+}
+
+.drawer-background {
+    background-color: #fff;
+}
+
+.main-content {
+    padding: 20px;
+    background-color: #ffffff;
+}
+
+.tutorial-section {
+    background-color: #fff;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 900px; /* Ensure all tutorial blocks are the same width */
+}
+
+.tutorial-block {
+    max-width: 900px; /* Ensure consistent width for all sections */
+}
+
+.tutorial-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+}
+
+.tutorial-content-centered {
+    text-align: center;
+    max-width: 800px;
+    margin: auto;
+}
+
+.tutorial-image-left {
+    width: 45%;
+    margin-right: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tutorial-image-smaller {
+    display: block;
+    margin: 20px auto 0;
+    width: 100%; /* Make the image smaller but still centered */
+    max-width: 1080px;
+    max-height: 100%; /* Keeps the image height responsive */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tutorial-text {
+    width: 55%;
+}
+
+.tutorial-section h1 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.tutorial-section p, .tutorial-section ul {
+    font-size: 16px;
+    margin-bottom: 10px;
+    text-align: center; /* Center text to align with image layout */
+}
+
+ul {
+    list-style-type: disc;
+    margin-left: 20px;
+    text-align: left; /* Keeps list items aligned left */
+}
+
+.nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.nav-btn {
+    width: 120px;
+    padding: 10px;
+    background-color: #1976d2;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+/* Media Queries for Responsive Design */
+@@media (max-width: 768px) {
+    .tutorial-content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .tutorial-content-centered {
+        text-align: center;
+    }
+
+    .tutorial-image-left,
+    .tutorial-image-smaller {
+        width: 100%; /* Full width on smaller screens */
+        margin-right: 0; /* Reset margin for smaller screens */
+    }
+
+    .nav-btn {
+        width: 100px; /* Smaller button width for mobile devices */
+    }
+}
+</style>

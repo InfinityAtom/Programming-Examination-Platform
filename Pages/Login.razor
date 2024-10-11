@@ -120,6 +120,7 @@
             if (student != null)
             {
                 await LocalStorage.SetItemAsync("userID", student.StudnetId);
+                await LocalStorage.SetItemAsync("userEmail", student.Email);
                 await LocalStorage.SetItemAsync("StudentsProctorId", student.ProctorId);
                 await LocalStorage.SetItemAsync("userRole", "Student");
                 _message = "Successfully logged in with Passkey! Redirecting...";
@@ -153,6 +154,7 @@
                 await LocalStorage.SetItemAsync("userID", student.StudnetId);
                 await LocalStorage.SetItemAsync("StudentsProctorId", student.ProctorId);
                 await LocalStorage.SetItemAsync("userRole", "Student");
+                await LocalStorage.SetItemAsync("userEmail", student.Email);
                 _message = "Successfully logged in! Redirecting...";
                 _alert = 0;
                 NavigationManager.NavigateTo("/indexStudent");

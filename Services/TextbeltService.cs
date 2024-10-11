@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 public class TextbeltService
@@ -21,8 +22,11 @@ public class TextbeltService
       // Send the GET request to the constructed URL
       var response = await _httpClient.GetStringAsync(url);
 
-      // Output the response to the console for debugging
-      Console.WriteLine($"Response from Textbelt: {response}");
+      // Deserialize the JSON response into a TextbeltResponse object
+      var textbeltResponse = JsonSerializer.Deserialize<TextbeltResponse>(response);
+
+      // Output the deserialized response to the console for debugging
+      Console.WriteLine($"Response from Textbelt: Success={textbeltResponse.Success}, TextId={textbeltResponse.TextId}, QuotaRemaining={textbeltResponse.QuotaRemaining}");
     }
     catch (Exception ex)
     {

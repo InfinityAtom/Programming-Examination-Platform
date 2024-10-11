@@ -95,9 +95,31 @@
             <br/><br/>
             <MudText Typo="Typo.h6">Or create an account manually</MudText>
             <MudTextField T="string" Label="Email" @bind-Value="@Email" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" AdornmentColor="Color.Primary"/>
+            <MudStack Spacing="5" Row="true">
+                            <!-- Country Code Selector -->
+                            <MudSelect @bind-Value="selectedCountryCode" Label="Country" Style="width: 200px;" AnchorOrigin="Origin.TopLeft">
+                                @foreach (var country in countryCodes)
+                                {
+                                    <MudSelectItem Value="@(country.Code)">
+                                        <MudText Typo="Typo.caption" Align="Align.Left">
+                                            @country.Flag @country.Name
+                                        </MudText>
+                                    </MudSelectItem>
+                                }
+                            </MudSelect>
+                        
+                            <!-- Phone Number Input -->
+                            <MudTextField T="string"
+                                          Label="Phone Number"
+                                          @bind-Value="PhoneNumber"
+                                          Required="true"
+                                          Adornment="Adornment.Start"
+                                          AdornmentText="@selectedCountryCode"
+                                          Style="flex-grow: 1;"/>
+                        </MudStack>
             <MudTextField Label="Password" @bind-Value="@Parola" InputType="InputType.Password" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary"></MudTextField>
-            <MudTextField T="string" Label="Phone Number" @bind-Value="@PhoneNumber" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone" AdornmentColor="Color.Primary"/>
             <MudTextField Label="Repeat password" @bind-Value="@RepeatPassword" InputType="InputType.Password" Error="@(!PasswordsMatch)" ErrorText="Passwords do not match" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" AdornmentColor="Color.Primary"></MudTextField>
+            
             <MudTextField T="string" Label="Last name" HelperText="Last name" @bind-Value="@Numele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
             <MudTextField T="string" Label="First name" HelperText="First name" @bind-Value="@Prenumele" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Person2" AdornmentColor="Color.Primary"/>
             <MudTextField T="string" Label="Faculty" @bind-Value="@Facultatea" Required="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.School" AdornmentColor="Color.Primary"/>
@@ -140,6 +162,7 @@
     private Specialization selectedSpecialization;
     private List<Proctor> proctors = new();
     private Proctor selectedProctor;
+    private string selectedCountryCode = "+40"; // Default to Romania's code
 
     private string Email { get; set; }
     private string Parola { get; set; }
@@ -153,13 +176,71 @@
     private bool PasswordsMatch => Parola == RepeatPassword;
     private string message = "";
     private int alert = 0;
-    private int proctorID;
     private bool isLoading = false;
     private User user = new User();
     private string PhoneNumber { get; set; }
     private bool PhoneNumberVerified { get; set; } = false;
 
-    
+    private List<CountryCode> countryCodes = new List<CountryCode>
+    {
+        new CountryCode { Code = "+40", Name = "Romania", Flag = "🇷🇴" },
+    new CountryCode { Code = "+33", Name = "France", Flag = "🇫🇷" },
+    new CountryCode { Code = "+49", Name = "Germany", Flag = "🇩🇪" },
+    new CountryCode { Code = "+34", Name = "Spain", Flag = "🇪🇸" },
+    new CountryCode { Code = "+39", Name = "Italy", Flag = "🇮🇹" },
+    new CountryCode { Code = "+47", Name = "Norway", Flag = "🇳🇴" },
+    new CountryCode { Code = "+45", Name = "Denmark", Flag = "🇩🇰" },
+    new CountryCode { Code = "+46", Name = "Sweden", Flag = "🇸🇪" },
+    new CountryCode { Code = "+41", Name = "Switzerland", Flag = "🇨🇭" },
+    new CountryCode { Code = "+43", Name = "Austria", Flag = "🇦🇹" },
+    new CountryCode { Code = "+32", Name = "Belgium", Flag = "🇧🇪" },
+    new CountryCode { Code = "+359", Name = "Bulgaria", Flag = "🇧🇬" },
+    new CountryCode { Code = "+357", Name = "Cyprus", Flag = "🇨🇾" },
+    new CountryCode { Code = "+420", Name = "Czech Republic", Flag = "🇨🇿" },
+    new CountryCode { Code = "+45", Name = "Denmark", Flag = "🇩🇰" },
+    new CountryCode { Code = "+372", Name = "Estonia", Flag = "🇪🇪" },
+    new CountryCode { Code = "+358", Name = "Finland", Flag = "🇫🇮" },
+    new CountryCode { Code = "+30", Name = "Greece", Flag = "🇬🇷" },
+    new CountryCode { Code = "+36", Name = "Hungary", Flag = "🇭🇺" },
+    new CountryCode { Code = "+354", Name = "Iceland", Flag = "🇮🇸" },
+    new CountryCode { Code = "+353", Name = "Ireland", Flag = "🇮🇪" },
+    new CountryCode { Code = "+371", Name = "Latvia", Flag = "🇱🇻" },
+    new CountryCode { Code = "+370", Name = "Lithuania", Flag = "🇱🇹" },
+    new CountryCode { Code = "+352", Name = "Luxembourg", Flag = "🇱🇺" },
+    new CountryCode { Code = "+356", Name = "Malta", Flag = "🇲🇹" },
+    new CountryCode { Code = "+31", Name = "Netherlands", Flag = "🇳🇱" },
+    new CountryCode { Code = "+47", Name = "Norway", Flag = "🇳🇴" },
+    new CountryCode { Code = "+48", Name = "Poland", Flag = "🇵🇱" },
+    new CountryCode { Code = "+351", Name = "Portugal", Flag = "🇵🇹" },
+    new CountryCode { Code = "+40", Name = "Romania", Flag = "🇷🇴" },
+    new CountryCode { Code = "+421", Name = "Slovakia", Flag = "🇸🇰" },
+    new CountryCode { Code = "+386", Name = "Slovenia", Flag = "🇸🇮" },
+    new CountryCode { Code = "+386", Name = "Slovenia", Flag = "🇸🇮" },
+    new CountryCode { Code = "+386", Name = "Slovenia", Flag = "🇸🇮" },
+    new CountryCode { Code = "+381", Name = "Serbia", Flag = "🇷🇸" },
+    new CountryCode { Code = "+386", Name = "Slovenia", Flag = "🇸🇮" },
+    new CountryCode { Code = "+34", Name = "Spain", Flag = "🇪🇸" },
+    new CountryCode { Code = "+46", Name = "Sweden", Flag = "🇸🇪" },
+    new CountryCode { Code = "+41", Name = "Switzerland", Flag = "🇨🇭" },
+    new CountryCode { Code = "+380", Name = "Ukraine", Flag = "🇺🇦" },
+    new CountryCode { Code = "+355", Name = "Albania", Flag = "🇦🇱" },
+    new CountryCode { Code = "+374", Name = "Armenia", Flag = "🇦🇲" },
+    new CountryCode { Code = "+375", Name = "Belarus", Flag = "🇧🇾" },
+    new CountryCode { Code = "+387", Name = "Bosnia and Herzegovina", Flag = "🇧🇦" },
+    new CountryCode { Code = "+389", Name = "North Macedonia", Flag = "🇲🇰" },
+    new CountryCode { Code = "+423", Name = "Liechtenstein", Flag = "🇱🇮" },
+    new CountryCode { Code = "+373", Name = "Moldova", Flag = "🇲🇩" },
+    new CountryCode { Code = "+382", Name = "Montenegro", Flag = "🇲🇪" },
+    new CountryCode { Code = "+377", Name = "Monaco", Flag = "🇲🇨" },
+    new CountryCode { Code = "+7", Name = "Russia", Flag = "🇷🇺" },
+    new CountryCode { Code = "+378", Name = "San Marino", Flag = "🇸🇲" },
+    new CountryCode { Code = "+381", Name = "Serbia", Flag = "🇷🇸" },
+    new CountryCode { Code = "+90", Name = "Turkey", Flag = "🇹🇷" },
+    new CountryCode { Code = "+379", Name = "Vatican City", Flag = "🇻🇦" },
+    new CountryCode { Code = "+48", Name = "Poland", Flag = "🇵🇱" }
+        // Add other countries as needed
+    };
+
     private async Task SaveEmail()
     {
         if (string.IsNullOrWhiteSpace(user.Email))
@@ -176,63 +257,63 @@
     {
         public string Email { get; set; }
     }
-    
+
     protected override async Task OnInitializedAsync()
     {
-        
         specializations = await DbContext.Specializations.ToListAsync();
         proctors = await DbContext.Proctors.ToListAsync();
     }
 
-   private async Task RegisterPasskey()
-{
-    try
+    private async Task RegisterPasskey()
     {
-        if (string.IsNullOrWhiteSpace(user.Email))
+        try
         {
-            Snackbar.Add("Email is required!", Severity.Error);
-            return;
+            if (string.IsNullOrWhiteSpace(user.Email))
+            {
+                Snackbar.Add("Email is required!", Severity.Error);
+                return;
+            }
+
+            // Save email in LocalStorage
+            await LocalStorage.SetItemAsync("userEmail", user.Email);
+            await LocalStorage.SetItemAsync("isManualAccount", "false");
+            await LocalStorage.SetItemAsync("passkeyUser", 1);
+            // Generate a 6-digit verification code
+            string verificationCode = GenerateVerificationCode();
+            await LocalStorage.SetItemAsync("verificationCode", verificationCode);
+
+            // Send the verification code via email
+            await SendVerificationCodeEmail(user.Email, verificationCode);
+
+            // Redirect to the confirmation page
+            NavigationManager.NavigateTo("/confirmation-email");
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
+        }
+    }
 
-        // Save email in LocalStorage
-        await LocalStorage.SetItemAsync("userEmail", user.Email);
+    private string GenerateVerificationCode()
+    {
+        var random = new Random();
+        return random.Next(100000, 999999).ToString();
+    }
 
-        // Generate a 6-digit verification code
-        string verificationCode = GenerateVerificationCode();
+    public async Task SendVerificationCodeEmail(string email, string code)
+    {
+        string verificationCode = GenerateVerificationCode(); // This is your generated 6-digit code
         await LocalStorage.SetItemAsync("verificationCode", verificationCode);
+        try
+        {
+            var fromAddress = new MailAddress("java.exam@infinity-atom.ro", "Programming Examination Platform");
+            var toAddress = new MailAddress(email);
+            string subject = "Your Verification Code";
+            string headerImageBase64 = Convert.ToBase64String(System.IO.File.ReadAllBytes("wwwroot/images/header.png"));
+            string headerImageSrc = $"data:image/png;base64,{headerImageBase64}";
 
-        // Send the verification code via email
-        await SendVerificationCodeEmail(user.Email, verificationCode);
-
-        // Redirect to the confirmation page
-        NavigationManager.NavigateTo("/confirmation-email");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error: {ex.Message}");
-        Snackbar.Add($"An error occurred: {ex.Message}", Severity.Error);
-    }
-}
-
-private string GenerateVerificationCode()
-{
-    var random = new Random();
-    return random.Next(100000, 999999).ToString();
-}
-
-public async System.Threading.Tasks.Task SendVerificationCodeEmail(string email, string code)
-{
-    string verificationCode = GenerateVerificationCode(); // This is your generated 6-digit code
-    await LocalStorage.SetItemAsync("verificationCode", verificationCode);
-    try
-    {
-        var fromAddress = new MailAddress("java.exam@infinity-atom.ro", "Programming Examination Platform");
-        var toAddress = new MailAddress(email);
-        string subject = "Your Verification Code";
-        string headerImageBase64 = Convert.ToBase64String(System.IO.File.ReadAllBytes("wwwroot/images/header.png"));
-string headerImageSrc = $"data:image/png;base64,{headerImageBase64}";
-
-string body = $@"
+            string body = $@"
 <!DOCTYPE html>
 <html lang='en'>
 <head>
@@ -321,31 +402,30 @@ string body = $@"
 </body>
 </html>";
 
-        var smtp = new SmtpClient
-        {
-            Host = "mail.infinity-atom.ro",
-            Port = 587,
-            EnableSsl = true,
-            DeliveryMethod = SmtpDeliveryMethod.Network,
-            UseDefaultCredentials = false,
-            Credentials = new NetworkCredential(fromAddress.Address, "p@SSWORD20caractereabc1")
-        };
+            var smtp = new SmtpClient
+            {
+                Host = "mail.infinity-atom.ro",
+                Port = 465,
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(fromAddress.Address, "p@SSWORD20caractereabc1")
+            };
 
-        using (var message = new MailMessage(fromAddress, toAddress))
+            using (var message = new MailMessage(fromAddress, toAddress))
+            {
+                message.Subject = subject;
+                message.Body = body;
+                message.IsBodyHtml = true;
+                await smtp.SendMailAsync(message);
+            }
+        }
+        catch (Exception ex)
         {
-            message.Subject = subject;
-            message.Body = body;
-            message.IsBodyHtml = true;
-            await smtp.SendMailAsync(message);
+            Console.WriteLine(ex.Message);
+            Snackbar.Add($"An error occurred while sending the email: {ex.Message}", Severity.Error);
         }
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex.Message);
-        Snackbar.Add($"An error occurred while sending the email: {ex.Message}", Severity.Error);
-    }
-}
-
 
     private static string ComputeSha256Hash(string rawData)
     {
@@ -384,7 +464,7 @@ string body = $@"
             message = string.Empty;
             alert = 1;
 
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Parola) || string.IsNullOrWhiteSpace(RepeatPassword) || string.IsNullOrWhiteSpace(Numele) || string.IsNullOrWhiteSpace(Prenumele) || string.IsNullOrWhiteSpace(Facultatea) || selectedSpecialization == null || string.IsNullOrWhiteSpace(Anul) || string.IsNullOrWhiteSpace(Grupa))
+            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Parola) || string.IsNullOrWhiteSpace(RepeatPassword) || string.IsNullOrWhiteSpace(Numele) || string.IsNullOrWhiteSpace(Prenumele) || string.IsNullOrWhiteSpace(Facultatea) || selectedSpecialization == null || string.IsNullOrWhiteSpace(Anul) || string.IsNullOrWhiteSpace(Grupa) || string.IsNullOrWhiteSpace(PhoneNumber))
             {
                 message = "All fields are required!";
                 return;
@@ -403,29 +483,26 @@ string body = $@"
                 return;
             }
 
-            Studenti newStudent = new Studenti
-            {
-                Email = Email,
-                Password = ComputeSha256Hash(Parola),
-                FirstName = Prenumele,
-                LastName = Numele,
-                Faculty = Facultatea,
-                SpecializationId = selectedSpecialization.SpecializationId,
-                ProctorId = selectedProctor.ProctorId,
-                Year = Anul,
-                Groupa = Grupa,
-                Blind = blindCheck ? 1 : 0,
-                Cheater = 0
-            };
-
-            DbContext.Studentis.Add(newStudent);
-            await DbContext.SaveChangesAsync();
-            await LocalStorage.SetItemAsync("userID", newStudent.StudnetId);
-            await LocalStorage.SetItemAsync("StudentsProctorId", newStudent.ProctorId);
-
-            message = "Successfully registered! Redirecting...";
-            alert = 0;
-            NavigationManager.NavigateTo("/indexStudent");
+            // Save the details temporarily in LocalStorage
+            await LocalStorage.SetItemAsync("userEmail", Email);
+            await LocalStorage.SetItemAsync("isManualAccount", "true");
+            await LocalStorage.SetItemAsync("userPassword", ComputeSha256Hash(Parola));
+            await LocalStorage.SetItemAsync("userFirstName", Prenumele);
+            await LocalStorage.SetItemAsync("userLastName", Numele);
+            await LocalStorage.SetItemAsync("userFaculty", Facultatea);
+            await LocalStorage.SetItemAsync("userSpecializationId", selectedSpecialization.SpecializationId.ToString());
+            await LocalStorage.SetItemAsync("userProctorId", selectedProctor.ProctorId.ToString());
+            await LocalStorage.SetItemAsync("userYear", Anul);
+            await LocalStorage.SetItemAsync("userGroup", Grupa);
+            await LocalStorage.SetItemAsync("userBlindCheck", blindCheck? 1.ToString() : 0.ToString());
+            await LocalStorage.SetItemAsync("userPhoneNumber", selectedCountryCode + PhoneNumber);
+            await LocalStorage.SetItemAsync("userPhoneNumberConfiremd", "0");
+            await LocalStorage.SetItemAsync("passkeyUser", 0);
+            
+    // Redirect to email confirmation page
+            await SendVerificationCodeEmail(Email,GenerateVerificationCode());
+            NavigationManager.NavigateTo("/confirmation-email");
+            
         }
         catch (Exception ex)
         {
@@ -452,5 +529,12 @@ string body = $@"
         {
             Snackbar.Add(message, Severity.Error);
         }
+    }
+
+    public class CountryCode
+    {
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public string Flag { get; set; }
     }
 }

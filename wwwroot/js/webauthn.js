@@ -87,4 +87,6 @@ async function registerPasskey() {
     } catch (err) {
         console.error("Error during passkey registration:", err);
     }
+
+
 }

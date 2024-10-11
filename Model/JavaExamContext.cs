@@ -426,6 +426,7 @@ public partial class JavaExamContext : DbContext
         {
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.BookingId).HasColumnName("BookingID");
+            entity.Property(e => e.EncodedCsv).HasColumnName("EncodedCSV");
             entity.Property(e => e.ExamId).HasColumnName("ExamID");
             entity.Property(e => e.ProctorId).HasColumnName("ProctorID");
             entity.Property(e => e.StudentId).HasColumnName("StudentID");
